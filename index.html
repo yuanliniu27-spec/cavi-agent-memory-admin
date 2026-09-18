@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="lJOAPOs2XCEZDiLPLy2EYY" data-dm-ref="2"><head data-page-node-id="MQ4NIofOQtTQKuNHtGLWuf">
+<meta charset="UTF-8" data-page-node-id="bP9KrRwerFX32dQIrkan9B">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="z0Yj0xAQ2mycZW8gIGYmG2">
+<title>CAVI · Agent 记忆标签运营后台（原型）</title>
+<style>
+  :root{
+    --brand:#FFE100; --brand-dark:#E5CA00; --ink:#111111; --ink2:#4b4b4b; --ink3:#8a8a8a;
+    --bg:#F5F5F2; --card:#FFFFFF; --line:#E8E8E3; --ok:#0A8F4B; --warn:#D97706; --blue:#2563EB;
+    --radius:14px; --chip-r:999px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;background:var(--bg);color:var(--ink);font-size:13px}
+  .app{display:flex;min-height:100vh}
+
+  /* ===== Sidebar ===== */
+  .side{width:210px;background:var(--ink);color:#fff;padding:18px 12px;position:sticky;top:0;height:100vh;flex-shrink:0}
+  .logo{display:flex;align-items:center;gap:8px;padding:4px 8px 18px}
+  .logo .ca{width:30px;height:30px;background:var(--brand);color:#111;border-radius:9px;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+  .logo b{font-size:14px}
+  .logo small{display:block;font-size:10px;color:#999;font-weight:400}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav a{color:#c9c9c9;text-decoration:none;padding:9px 12px;border-radius:10px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+  .nav a.on{background:#2a2a2a;color:var(--brand);font-weight:600}
+  .nav a:hover{background:#222;color:#fff}
+  .nav .cnt{background:#333;color:#bbb;border-radius:var(--chip-r);font-size:10px;padding:1px 7px}
+  .nav a.off{opacity:.45}
+  .side .foot{position:absolute;bottom:16px;left:12px;right:12px;font-size:10px;color:#666;line-height:1.6}
+  .proto-tag{background:var(--brand);color:#111;font-size:10px;font-weight:700;border-radius:var(--chip-r);padding:2px 8px}
+
+  /* ===== Main ===== */
+  .main{flex:1;padding:20px 24px 40px;max-width:1380px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .topbar h1{font-size:18px}
+  .topbar .sub{color:var(--ink3);font-size:12px;margin-top:3px}
+  .live{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:var(--chip-r);padding:5px 12px;font-size:12px}
+  .live .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(10,143,75,.4)}70%{box-shadow:0 0 0 6px rgba(10,143,75,0)}100%{box-shadow:0 0 0 0 rgba(10,143,75,0)}}
+
+  /* ===== Stat cards ===== */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+  .stat .k{color:var(--ink3);font-size:12px}
+  .stat .v{font-size:24px;font-weight:800;margin-top:4px}
+  .stat .d{font-size:11px;margin-top:4px;color:var(--ink3)}
+
+  /* ===== Filter panel ===== */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+  .panel h3{font-size:13px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .frow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .fgroup{display:flex;flex-direction:column;gap:5px}
+  .fgroup label{font-size:11px;color:var(--ink3)}
+  input[type=text],select{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;background:#FAFAF8;min-width:130px;outline:none}
+  input[type=text]:focus,select:focus{border-color:var(--brand-dark);background:#fff}
+  input[type=date]{border:1px solid var(--line);border-radius:10px;padding:7px 8px;font-size:12px;background:#FAFAF8}
+  .search-big{min-width:320px}
+  .btn{border:none;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--brand);color:#111}
+  .btn.primary:hover{background:var(--brand-dark)}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+  .btn.dark{background:var(--ink);color:var(--brand)}
+  .divider{height:1px;background:var(--line);margin:14px 0}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{border:1px solid var(--line);background:#FAFAF8;border-radius:var(--chip-r);padding:5px 12px;font-size:11px;cursor:pointer;color:var(--ink2)}
+  .chip.on{background:var(--ink);color:var(--brand);border-color:var(--ink);font-weight:600}
+
+  /* ===== 两级标签筛选（维度下拉 → 具体值）===== */
+  .ddim-row{display:flex;flex-wrap:wrap;gap:8px}
+  .ddim{position:relative}
+  .ddim-btn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:var(--chip-r);padding:7px 14px;font-size:12px;background:#FAFAF8;cursor:pointer;color:var(--ink2);text-align:left;white-space:nowrap}
+  .ddim-btn:hover{border-color:var(--brand-dark);color:var(--ink)}
+  .ddim.open .ddim-btn{border-color:var(--brand-dark);background:#FFF7C2;color:var(--ink);font-weight:600}
+  .ddim.has-sel .ddim-btn{background:var(--brand);border-color:var(--brand-dark);color:#111;font-weight:600}
+  .ddim-btn .ddim-arrow{font-size:9px;color:var(--ink3);transition:.2s}
+  .ddim.open .ddim-arrow{transform:rotate(180deg)}
+  .ddim-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;width:230px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:8px;z-index:40;max-height:280px;overflow:auto}
+  .ddim.open .ddim-panel{display:block}
+  .ddim-item{display:flex;align-items:center;gap:8px;font-size:12px;padding:7px 10px;border-radius:8px;cursor:pointer;color:var(--ink2)}
+  .ddim-item:hover{background:#FFFBDC}
+  .ddim-hint{font-size:10px;color:var(--ink3);padding:2px 10px 6px;border-bottom:1px solid var(--line);margin-bottom:4px}
+  .ddim-count{background:var(--ink);color:var(--brand);border-radius:var(--chip-r);font-size:10px;font-weight:700;padding:1px 7px}
+  .ddim-clear{font-size:10.5px;color:var(--warn);cursor:pointer;padding:6px 10px 2px;display:block;text-align:right}
+  .ddim-clear:hover{text-decoration:underline}
+
+  /* ===== Table ===== */
+  .tbl-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;background:var(--card);min-width:1180px}
+  thead th{background:#FAFAF7;text-align:left;font-size:11px;color:var(--ink3);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{padding:11px 12px;border-bottom:1px solid #F1F1EC;font-size:12px;vertical-align:middle}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:#FFFBDC}
+  .mono{font-family:"SF Mono",Menlo,monospace;font-size:11px;color:var(--ink2)}
+  .pill{display:inline-block;border-radius:var(--chip-r);padding:2px 9px;font-size:10.5px;font-weight:600;margin:1px 2px 1px 0;white-space:nowrap}
+  .p-brand{background:#FFF6D6;color:#7A6400}
+  .p-series{background:#EAF1FF;color:#1D4ED8}
+  .p-body{background:#F0EAFF;color:#6D28D9}
+  .p-budget{background:#E7F7EF;color:#0A6B38}
+  .p-pay{background:#FDEEE2;color:#B45309}
+  .p-energy{background:#E6F7F5;color:#0F766E}
+  .p-lang{background:#F2F2F0;color:#444}
+  .p-src-ai{background:var(--ink);color:var(--brand)}
+  .p-src-web{background:#F2F2F0;color:#555}
+  .p-plat{background:#fff;border:1px solid var(--line);color:var(--ink2)}
+  .more{color:var(--ink3);font-size:10.5px}
+  .empty-row td{text-align:center;color:var(--ink3);padding:36px}
+
+  /* ===== Drawer ===== */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s;z-index:50}
+  .mask.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-640px;width:620px;height:100vh;background:#FCFCFA;box-shadow:-8px 0 40px rgba(0,0,0,.15);transition:right .25s ease;z-index:60;overflow-y:auto;padding:22px 24px 40px}
+  .drawer.on{right:0}
+  .drawer h2{font-size:16px;display:flex;justify-content:space-between;align-items:center}
+  .closex{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 10px;font-size:14px;color:var(--ink2)}
+  .sec{margin-top:18px}
+  .sec .sec-t{font-size:12px;font-weight:700;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .tagcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+  .tagcard .tc-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+  .tagcard .tc-h b{font-size:12.5px}
+  .tagcard .tc-h span{font-size:10.5px;color:var(--ink3)}
+  .kv{display:flex;gap:8px;font-size:11.5px;color:var(--ink2);margin-top:4px}
+  .kv b{color:var(--ink);font-weight:600}
+  .timeline{border-left:2px solid var(--line);margin-left:6px;padding-left:14px}
+  .tl-item{position:relative;padding-bottom:12px}
+  .tl-item::before{content:"";position:absolute;left:-19px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--brand);border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .tl-item .t{font-size:10.5px;color:var(--ink3)}
+  .tl-item .m{font-size:12px;margin-top:2px}
+  .bindbox{background:#FFFBEA;border:1px dashed var(--brand-dark);border-radius:12px;padding:10px 14px;font-size:11.5px;color:#6b5b00;line-height:1.7}
+
+  /* ===== Export modal ===== */
+  .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);z-index:80;opacity:0;pointer-events:none;transition:.2s}
+  .modal.on{opacity:1;pointer-events:auto}
+  .modal .box{background:#fff;border-radius:16px;width:520px;max-width:92vw;padding:22px 24px;transform:translateY(8px);transition:.2s}
+  .modal.on .box{transform:none}
+  .modal h3{font-size:15px;margin-bottom:6px}
+  .modal p.sub{color:var(--ink3);font-size:12px;margin-bottom:14px}
+
+  /* ===== 更新字典弹窗 ===== */
+  .du-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--line);border-radius:14px;padding:34px 20px;cursor:pointer;text-align:center;transition:.2s;background:#FAFAF8}
+  .du-drop:hover,.du-drop.over{border-color:var(--brand-dark);background:#FFFBDC}
+  .du-drop-icon{font-size:30px}
+  .du-drop b{font-size:13px;color:var(--ink)}
+  .du-drop .more{font-size:11px}
+  .du-or{display:flex;align-items:center;gap:10px;color:var(--ink3);font-size:11px;margin:12px 0}
+  .du-or::before,.du-or::after{content:"";flex:1;height:1px;background:var(--line)}
+  .du-link-row{display:flex;gap:8px}
+  .du-link-input{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12px;background:#FAFAF8;outline:none}
+  .du-link-input:focus{border-color:var(--brand-dark);background:#fff}
+  .du-link-input.err{border-color:#D64545;background:#FDF2F2;animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .du-link-hint{font-size:10.5px;color:var(--ink3);margin-top:6px}
+  .du-steps{padding:14px 4px}
+  .du-step{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink3);padding:7px 0}
+  .du-step .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+  .du-step.doing{color:var(--ink);font-weight:600}
+  .du-step.doing .dot{border-color:var(--brand-dark);border-top-color:transparent;animation:spin .8s linear infinite}
+  .du-step.done{color:var(--ink2)}
+  .du-step.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+  .du-step.done .dot::after{content:"✓"}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .du-meta{display:flex;gap:8px;align-items:center;background:#FFFBDC;border:1px solid var(--brand);border-radius:10px;padding:8px 12px;font-size:11.5px;margin-bottom:10px}
+  .du-changes{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+  .du-change{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:12px}
+  .du-change-h{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .du-badge{border-radius:var(--chip-r);font-size:10px;font-weight:700;padding:1px 8px}
+  .du-badge.add{background:#E7F7EF;color:#0A6B38}
+  .du-badge.mod{background:#FFF3CD;color:#8a6d00}
+  .du-badge.newgrp{background:#E8F0FE;color:#1a56c4}
+  .du-change-target{color:var(--ink3);font-size:11px;margin-left:auto}
+  .du-change-body{color:var(--ink2);line-height:1.55}
+  .du-change-body mark{background:#FFF3B0;padding:0 2px;border-radius:3px}
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;border-radius:var(--chip-r);padding:10px 22px;font-size:12.5px;opacity:0;pointer-events:none;transition:.3s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+  .toast.on{opacity:1;transform:translateX(-50%)}
+  tr.row-updated{animation:flashRow 2.4s ease}
+  @keyframes flashRow{0%{background:#FFF3B0}100%{background:transparent}}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0 14px}
+  .field-grid label{display:flex;gap:6px;align-items:center;font-size:11.5px;background:#FAFAF8;border:1px solid var(--line);border-radius:9px;padding:7px 9px;cursor:pointer}
+  .export-actions{display:flex;justify-content:flex-end;gap:10px}
+
+  /* ===== Bars (dashboard) ===== */
+  .bars{display:flex;flex-direction:column;gap:8px}
+  .bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+  .bar-row .bl{width:160px;color:var(--ink2);text-align:right;flex-shrink:0}
+  .bar-row .btrack{flex:1;height:14px;background:#F1F1EC;border-radius:7px;overflow:hidden}
+  .bar-row .bfill{height:100%;background:var(--brand);border-radius:7px}
+  .bar-row .bv{width:52px;font-weight:700;font-size:11px}
+
+  /* ===== Notes ===== */
+  .note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+  .note b{font-size:13px}
+  .note p{color:var(--ink2);font-size:12px;line-height:1.8;margin-top:5px}
+  .note code{background:#F4F4EF;border-radius:5px;padding:1px 6px;font-size:11px;font-family:Menlo,monospace}
+</style>
+<style id="__dm_no_drag_style__">* { -webkit-user-drag: none !important; }</style><style id="__dm_bindable_badge_style__">[data-sp-bindable="database"]{outline:1px dashed #0088ff;outline-offset:2px;border-radius:4px;}[data-sp-bindable="database"] *{pointer-events:none !important;transition:none !important;animation:none !important;}[data-sp-bindable="database"]{transition:none !important;animation:none !important;}</style></head>
+<body data-page-node-id="lwEdbQBXHmonrk8hDBtr7o" style="">
+<div class="app" data-page-node-id="rYmwKoFAjUbDx1DhAhheiL">
+
+  <!-- ============ Sidebar ============ -->
+  <aside class="side" data-page-node-id="j9JKQ1mGl0jp4clWTKTiWJ">
+    <div class="logo" data-page-node-id="VOLPJOAHQdpHolFzxSQGk4">
+      <div class="ca" data-page-node-id="GObQHUPlQWTRYKjHGBlulK">CA</div>
+      <div data-page-node-id="wJT1TwxD9zXRcZrkngHznT"><b data-page-node-id="kxlVQVwAkyORWSzQJR0yct">Cavi Admin</b><small data-page-node-id="7AdmyCH699qqwuT6M8kZl0">Agent 记忆标签后台</small></div>
+    </div>
+    <nav class="nav" data-page-node-id="xmcydz9vqg3qLk5v2IPUJb">
+      <a class="" href="#" data-view="query" data-page-node-id="1RU54B6pbW4zEfNDoSqilJ">用户记忆查询 <span class="cnt" data-page-node-id="d7yBTis18Z8mF7EsXE4GXP">主功能</span></a>
+      <a href="#" data-view="dict" data-page-node-id="iZ9h3gWrkx5zDovFqZyGcx" class="on">标签字典</a>
+      <a href="#" data-view="dash" data-page-node-id="MQL0503Xe4EB7QofYA9IlP">标签分布看板</a>
+      
+      
+      
+    </nav>
+    <div class="foot" data-page-node-id="nwkpLel3YPgwqxs4VR3mDl">
+      <span class="proto-tag" data-page-node-id="9L0Z7iftZChfBBV4UGxDrl">交互原型 v0.2</span><br data-page-node-id="nPsMA18ujgjE5dNyADiytg">
+      数据为模拟数据，仅供评审<br data-page-node-id="QIoRw2iXg9G238RMtQY296">
+      需求源：《Agent记忆逻辑调整》
+    </div>
+  </aside>
+
+  <!-- ============ Main ============ -->
+  <div class="main" data-page-node-id="I7XZbEsTq4JzLaKieU4sFn">
+
+  <!-- ============ 视图 1：用户记忆查询 ============ -->
+  <section id="view-query" data-page-node-id="G1dAdEO8lFTdyMxVnisqO5" style="display: none;">
+    <div class="topbar" data-page-node-id="dx7YREkBsuMGMU8vQ8USMo">
+      <div data-page-node-id="JO5ZIxUZMMhDggYdre7ExA">
+        <h1 data-page-node-id="Op8lobDZeIxfWv4BOvqMRn">用户记忆标签查询</h1>
+        <div class="sub" data-page-node-id="hSF8rFMKfEWUxuPBagtqQs">实时读取 Cavi AI 用户记忆库 · 标签由 AI 会话语义识别 + 站内浏览行为自动写入</div>
+      </div>
+      <div class="live" data-page-node-id="TNgaRcX5AANPRQdG9YkOuw"><span class="dot" data-page-node-id="B7NFvknNUIQ31KojnJCXXG"></span> 实时同步 · 最近刷新 18:03:54</div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats" data-page-node-id="U2BzeexXVMLlJdNtlfCJed">
+      <div class="stat" data-page-node-id="u1B8DPTlapM1RgWm8T6RKt"><div class="k" data-page-node-id="cH1FNt0BDLrh4M9ltQnW97">24h 新增画像用户</div><div class="v" id="statFresh" data-page-node-id="ev3IPQysKzljhXCrWjpoYL">3</div><div class="d" data-page-node-id="4wmNbUgFNek9rDQszky9Bc">当前筛选条件下</div></div>
+      <div class="stat" data-page-node-id="IfhKck6aAlVzweCOlGwwMS"><div class="k" data-page-node-id="UJeYqbPGeDEv7i1Vdz2dmY">累计画像用户数</div><div class="v" id="statHit" data-page-node-id="NeC9F1R1TzWpIwVHGTASYx">8</div><div class="d" data-page-node-id="jrsETtmLov2jnIf8mMN97U">历史累计命中</div></div>
+      <div class="stat" data-page-node-id="tODUDk9MWX3GFSMqhaegnM"><div class="k" data-page-node-id="f3BlKyrnXAHfiFkOvJELFB">平均用户标签数</div><div class="v" id="statTags" data-page-node-id="PTW12bSNvlPDlBtFs2ZRUH">6.0</div><div class="d" data-page-node-id="A2eMXPfeQ43QRbGwEFIq7J">按标签个数计</div></div>
+      <div class="stat" data-page-node-id="lgMt5EY8aeFbWAyKJ9H7kn"><div class="k" data-page-node-id="Pd5yBLOCNhcCc6jda7mgGp">符合条件数</div><div class="v" id="statProfile" data-page-node-id="EHopawjSjSwT6z610QZXo3">8</div><div class="d" data-page-node-id="p0JHPJ6AAONUR9u3gJR1eE">按筛选条件刷新</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="panel" data-page-node-id="hXs5Dw0h0XM4AgBb2esXqr">
+      <h3 data-page-node-id="MOAVaRx9pHoIK5jPMC8fUC">🔎 筛选条件</h3>
+      <div class="frow" data-page-node-id="C2niqAXeEVjzI472JBfQfI">
+        <div class="fgroup" data-page-node-id="n1NEP0YqLU5hSSiWDlaZez">
+          <label data-page-node-id="oC9C9Li2nvHXOd8YuGyS12">精确标识查询（支持 device_id / uuid / session_id / 账号ID / 手机号）</label>
+          <input type="text" class="search-big" id="qId" placeholder="如 dev-8f3a21c0 / usr-20… 粘贴任一标识即可" data-page-node-id="IfQqoJMvulcv9Cut2ApZvc">
+        </div>
+        <div class="fgroup" data-page-node-id="UD8JxuyXrHfodJpACsFEfZ">
+          <label data-page-node-id="L07we8YYTxloGJdvLNCf6d">语言偏好</label>
+          <select id="fLang" data-page-node-id="xKjQdA185ozY2LOCvo06RQ"><option value="" data-page-node-id="tXqRczC3kem5w6WgYlLJ9J">全部</option><option data-page-node-id="VbgHKNP78qcSOZ4d6RSHCy">Español</option><option data-page-node-id="HKcl21HdnC9Y3b2KgFFWWB">English</option><option data-page-node-id="V93uG9IZUVsQXGiRAudNeH">中文</option></select>
+        </div>
+        <div class="fgroup" data-page-node-id="1nZVd3SsFDgrY8E5lkc7pm">
+          <label data-page-node-id="2nXQJawP1IHhJ4KHmxBJGz">设备端</label>
+          <select id="fPlat" data-page-node-id="0iyFUzTvqcqEUkf3Ruxsra"><option value="" data-page-node-id="f93kI4Y84cEECYOKnfzKv4">全部</option><option data-page-node-id="YAiEzZpb3eDlPfo6R17Aqq">移动</option><option data-page-node-id="yXBgpmBv1XfYEnPM369EbF">PC</option></select>
+        </div>
+        <div class="fgroup" data-page-node-id="j27qhA2jfnTlDqTNAne9wo">
+          <label data-page-node-id="Xt5DSj3JDtxtIkxt9CesUW">登录状态</label>
+          <select id="fLogin" data-page-node-id="UVap5yawcYAs2rLjml2f5E"><option value="" data-page-node-id="SbnDU3eQBFejvsoQnDlti5">全部</option><option data-page-node-id="OiZlKdUobbVJTuAgD9ODq5">已登录（画像挂账号）</option><option data-page-node-id="kQpMex7EYzq2emYXRvazbN">匿名（画像挂设备）</option></select>
+        </div>
+        <div class="fgroup" data-page-node-id="hBDZqr1ETHQcBd0guCC3u0">
+          <label data-page-node-id="V8VyL6T5UVE3WzPFgLfYPm">最近更新</label>
+          <div style="display:flex;gap:6px;align-items:center" data-page-node-id="VhFvnCUb6HO1SulFoAKRMF"><input type="date" id="fFrom" data-page-node-id="qaIgryjcD7nuw8YrYqRbrf"> <span style="color:var(--ink3)" data-page-node-id="5cOVOI5N0dzJPSogTqN2mG">~</span> <input type="date" id="fTo" data-page-node-id="PrHVfo1EWZMtJQFXWYgy0B"></div>
+        </div>
+      </div>
+      <div class="divider" data-page-node-id="pmZtd1zGnzLIBqSP1xHgER"></div>
+      <div class="frow" data-page-node-id="WEBjeDYB1MjXLVh65pRR0x">
+        <div class="fgroup" data-page-node-id="YViZ3W8FSc2rHRDiswyoFu">
+          <label data-page-node-id="pfbbdyyVICNVEk1oCNboec">记忆标签筛选 —— 先点维度，再在下拉里勾选具体标签值（维度之间为且、维度内为或）</label>
+          <div class="ddim-row" id="ddimRow" data-page-node-id="newDdimRow">
+    <div class="ddim" data-key="brand">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'brand')">
+        <span>品牌偏好</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="Nissan" onchange="onDdimChange('brand')"> Nissan</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Toyota" onchange="onDdimChange('brand')"> Toyota</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Kia" onchange="onDdimChange('brand')"> Kia</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Ford" onchange="onDdimChange('brand')"> Ford</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Chevrolet" onchange="onDdimChange('brand')"> Chevrolet</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="RAM" onchange="onDdimChange('brand')"> RAM</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="VW" onchange="onDdimChange('brand')"> VW</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Mazda" onchange="onDdimChange('brand')"> Mazda</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Honda" onchange="onDdimChange('brand')"> Honda</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="BYD" onchange="onDdimChange('brand')"> BYD</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="MG" onchange="onDdimChange('brand')"> MG</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Tesla" onchange="onDdimChange('brand')"> Tesla</label>
+        <span class="ddim-clear" onclick="clearDim('brand')">清空该维度</span>
+      </div>
+    </div>
+    <div class="ddim" data-key="series">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'series')">
+        <span>车系兴趣</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="Nueva Electra" onchange="onDdimChange('series')"> Nueva Electra</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Versa" onchange="onDdimChange('series')"> Versa</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Sentra" onchange="onDdimChange('series')"> Sentra</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Seltos" onchange="onDdimChange('series')"> Seltos</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Fortuner" onchange="onDdimChange('series')"> Fortuner</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="F-150" onchange="onDdimChange('series')"> F-150</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Silverado" onchange="onDdimChange('series')"> Silverado</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Hilux" onchange="onDdimChange('series')"> Hilux</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Seal" onchange="onDdimChange('series')"> Seal</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="ZS EV" onchange="onDdimChange('series')"> ZS EV</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Dolphin" onchange="onDdimChange('series')"> Dolphin</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Corolla" onchange="onDdimChange('series')"> Corolla</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Camry" onchange="onDdimChange('series')"> Camry</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="CX-30" onchange="onDdimChange('series')"> CX-30</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Civic" onchange="onDdimChange('series')"> Civic</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Aveo" onchange="onDdimChange('series')"> Aveo</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Model 3" onchange="onDdimChange('series')"> Model 3</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="bZ4X" onchange="onDdimChange('series')"> bZ4X</label>
+        <span class="ddim-clear" onclick="clearDim('series')">清空该维度</span>
+      </div>
+    </div>
+    <div class="ddim" data-key="body">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'body')">
+        <span>车身类型</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="SUV" onchange="onDdimChange('body')"> SUV</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Sedan" onchange="onDdimChange('body')"> Sedan</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Hatchback" onchange="onDdimChange('body')"> Hatchback</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Pickup" onchange="onDdimChange('body')"> Pickup</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Coupé" onchange="onDdimChange('body')"> Coupé</label>
+        <span class="ddim-clear" onclick="clearDim('body')">清空该维度</span>
+      </div>
+    </div>
+    <div class="ddim" data-key="budget">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'budget')">
+        <span>全款预算段</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="$150,000–250,000" onchange="onDdimChange('budget')"> $150,000–250,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="$200,000–300,000" onchange="onDdimChange('budget')"> $200,000–300,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="$250,000–350,000" onchange="onDdimChange('budget')"> $250,000–350,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="$300,000–450,000" onchange="onDdimChange('budget')"> $300,000–450,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="$400,000–600,000" onchange="onDdimChange('budget')"> $400,000–600,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="$500,000–700,000" onchange="onDdimChange('budget')"> $500,000–700,000</label>
+        <span class="ddim-clear" onclick="clearDim('budget')">清空该维度</span>
+      </div>
+    </div>
+    <div class="ddim" data-key="downpay">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'downpay')">
+        <span>首付占比区间</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="[0-10%)" onchange="onDdimChange('downpay')"> [0-10%)</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="[10-15%)" onchange="onDdimChange('downpay')"> [10-15%)</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="[15-20%)" onchange="onDdimChange('downpay')"> [15-20%)</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="[20-25%)" onchange="onDdimChange('downpay')"> [20-25%)</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="[25-30%)" onchange="onDdimChange('downpay')"> [25-30%)</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="[30-40%)" onchange="onDdimChange('downpay')"> [30-40%)</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="[40-50%)" onchange="onDdimChange('downpay')"> [40-50%)</label>
+        <span class="ddim-clear" onclick="clearDim('downpay')">清空该维度</span>
+      </div>
+    </div>
+    <div class="ddim" data-key="monthly">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'monthly')">
+        <span>月供区间</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="<$5,000" onchange="onDdimChange('monthly')"> &lt;$5,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="$5,000–10,000" onchange="onDdimChange('monthly')"> $5,000–10,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="> $10,000" onchange="onDdimChange('monthly')"> &gt; $10,000</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="不限" onchange="onDdimChange('monthly')"> 不限</label>
+        <span class="ddim-clear" onclick="clearDim('monthly')">清空该维度</span>
+      </div>
+    </div>
+    <div class="ddim" data-key="energy">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'energy')">
+        <span>能源类型</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        <label class="ddim-item"><input type="checkbox" class="ddimCk" value="Gasolina" onchange="onDdimChange('energy')"> Gasolina</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Híbrido" onchange="onDdimChange('energy')"> Híbrido</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="Diésel" onchange="onDdimChange('energy')"> Diésel</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="纯电" onchange="onDdimChange('energy')"> 纯电</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="插电混动" onchange="onDdimChange('energy')"> 插电混动</label><label class="ddim-item"><input type="checkbox" class="ddimCk" value="油混" onchange="onDdimChange('energy')"> 油混</label>
+        <span class="ddim-clear" onclick="clearDim('energy')">清空该维度</span>
+      </div>
+    </div></div>
+        </div>
+      </div>
+      <div class="divider" data-page-node-id="GC1opxdiSY5oOKONPcEFYG"></div>
+      <div class="frow" data-page-node-id="q4pO2zpywpxunUBpkToS0A">
+        <button class="btn primary" onclick="applyFilters()" data-page-node-id="aKER9dIfpBg0cgPBjmcjuQ">查询</button>
+        <button class="btn ghost" onclick="resetFilters()" data-page-node-id="W8USBBY6WAkWQ1Fo9lXaEt">重置</button>
+        <span style="flex:1" data-page-node-id="5ESxLyp9N5ZoVhlqBhsy2P"></span>
+        <button class="btn dark" onclick="openExport()" data-page-node-id="fbFoRIOJkWIWaA8sZ7JL8F">⬇ 导出当前结果（<span id="expCount" data-page-node-id="YKYPczosHB5dwAeHuTZAky">8</span> 条）</button>
+      </div>
+    </div>
+
+    <!-- Table（tbody 由 render() 动态填充，页面内不写死任何行） -->
+    <div class="tbl-wrap" data-page-node-id="XMwQAUHAuqLCxlKIYI7dir">
+    <table id="tbl" data-page-node-id="75hQoMqDlfaUtgNEoEDQUZ">
+      <thead data-page-node-id="XuCFg1Yg0jixJU6dYBZDsd"><tr data-page-node-id="LGYCbyJMXR2aKomRovrzDH">
+        <th data-page-node-id="OtByOGzbKP4h9qz6nw8p6L">设备标识</th><th data-page-node-id="AxDnsAtTygHA097ctSfu6F">UUID</th><th data-page-node-id="OPpct1RkbrFCbdp3WmBfFj">设备端</th><th data-page-node-id="AaRE0cTYb0wuU30ZcDJEdt">语言</th><th data-page-node-id="Y8Skkgs9qikJugCeJIx7Wd">品牌偏好 Top3</th><th data-page-node-id="ASTF43g8JIHOJXXDdbH4oh">车系兴趣 Top10</th>
+        <th data-page-node-id="96sgNgik3Hex8FejdfB0q1">预算偏好</th><th data-page-node-id="XAyhjpd9Z1TRXXQ5rKz1Yw">首付区间</th><th data-page-node-id="qxKeIibcSHQ43b3zATfWUA">能源偏好</th><th data-page-node-id="7VfcVlp9gcrGNnoG2LSCW7">标签总数</th><th data-page-node-id="FyZqVvUkFjMFsVmdRRV0Nf">最近更新时间 ▾</th>
+      </tr></thead>
+      <tbody id="tbody" data-page-node-id="PZOqCFbfF0IL89MDvpDmFT"><tr onclick="openDrawer('dev-8f3a21c0')">
+    <td><span class="mono">dev-8f3a21c0</span></td>
+    <td><span class="mono" style="color:var(--ink3)">7c9e6679-7425-40de-944b-e07fc1f90ae7</span></td>
+    <td><span class="pill p-plat">移动</span></td>
+    <td><span class="pill p-lang">Español</span></td>
+    <td><span class="pill p-brand">Nissan</span><span class="pill p-brand">Toyota</span><span class="pill p-brand">VW</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Nueva Electra ×4</span><span class="pill p-series">Versa ×3</span><span class="pill p-series">Sentra ×2</span></td>
+    <td><span class="pill p-budget">$250,000–350,000</span></td>
+    <td><span class="pill p-pay">[20-25%)</span></td>
+    <td><span class="pill p-energy">Gasolina</span><span class="pill p-energy">Híbrido</span></td>
+    <td><b>7</b>/8</td>
+    <td>2026-09-17 16:42<br><span class="pill" style="background:#E7F7EF;color:#0A6B38">24h 内更新</span></td>
+  </tr><tr onclick="openDrawer('dev-c4b90e77')">
+    <td><span class="mono">dev-c4b90e77</span></td>
+    <td><span class="mono" style="color:var(--ink3)">3f2b8a10-6c4d-4e91-b7a2-08d5f3e21c44</span></td>
+    <td><span class="pill p-plat">移动</span></td>
+    <td><span class="pill p-lang">Español</span></td>
+    <td><span class="pill p-brand">Kia</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Seltos ×2</span><span class="pill p-series">Fortuner</span></td>
+    <td><span class="pill p-budget">$150,000–250,000</span></td>
+    <td><span class="pill p-pay">[10-15%)</span></td>
+    <td><span class="pill p-energy">Gasolina</span></td>
+    <td><b>5</b>/8</td>
+    <td>2026-09-17 11:08<br><span class="pill" style="background:#E7F7EF;color:#0A6B38">24h 内更新</span></td>
+  </tr><tr onclick="openDrawer('dev-11ee5a09')">
+    <td><span class="mono">dev-11ee5a09</span></td>
+    <td><span class="mono" style="color:var(--ink3)">a91d3e72-05b8-4c7f-8d10-9e2a4b6c8d13</span></td>
+    <td><span class="pill p-plat">PC</span></td>
+    <td><span class="pill p-lang">English</span></td>
+    <td><span class="pill p-brand">Ford</span><span class="pill p-brand">Chevrolet</span><span class="pill p-brand">RAM</span></td>
+    <td style="max-width:250px"><span class="pill p-series">F-150 ×5</span><span class="pill p-series">Silverado ×2</span><span class="pill p-series">Hilux ×2</span></td>
+    <td><span class="pill p-budget">$400,000–600,000</span></td>
+    <td><span class="pill p-pay">[30-40%)</span></td>
+    <td><span class="pill p-energy">Diésel</span><span class="pill p-energy">Gasolina</span></td>
+    <td><b>8</b>/8</td>
+    <td>2026-09-16 19:30</td>
+  </tr><tr onclick="openDrawer('dev-9a01bb2f')">
+    <td><span class="mono">dev-9a01bb2f</span></td>
+    <td><span class="mono" style="color:var(--ink3)">62e4a805-19c7-4f3b-a5d6-8b90c1e2f374</span></td>
+    <td><span class="pill p-plat">移动</span></td>
+    <td><span class="pill p-lang">Español</span></td>
+    <td><span class="pill p-brand">BYD</span><span class="pill p-brand">MG</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Seal ×3</span><span class="pill p-series">ZS EV ×2</span><span class="pill p-series">Dolphin</span></td>
+    <td><span class="pill p-budget">$300,000–450,000</span></td>
+    <td><span class="pill p-pay">[15-20%)</span></td>
+    <td><span class="pill p-energy">纯电</span><span class="pill p-energy">插电混动</span></td>
+    <td><b>6</b>/8</td>
+    <td>2026-09-16 12:44</td>
+  </tr><tr onclick="openDrawer('dev-55d20c14')">
+    <td><span class="mono">dev-55d20c14</span></td>
+    <td><span class="mono" style="color:var(--ink3)">d40b7c19-8e2f-4a6d-93e5-701fa2b8c956</span></td>
+    <td><span class="pill p-plat">PC</span></td>
+    <td><span class="pill p-lang">中文</span></td>
+    <td><span class="pill p-brand">Toyota</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Corolla ×2</span><span class="pill p-series">Camry</span></td>
+    <td><span class="more">–</span></td>
+    <td><span class="pill p-pay">[0-10%)</span></td>
+    <td><span class="pill p-energy">油混</span></td>
+    <td><b>4</b>/8</td>
+    <td>2026-09-15 20:12</td>
+  </tr><tr onclick="openDrawer('dev-72ac31e8')">
+    <td><span class="mono">dev-72ac31e8</span></td>
+    <td><span class="mono" style="color:var(--ink3)">18c5f2a3-6b7d-4e08-b1c4-92d6e3f8a105</span></td>
+    <td><span class="pill p-plat">移动</span></td>
+    <td><span class="pill p-lang">Español</span></td>
+    <td><span class="pill p-brand">Nissan</span><span class="pill p-brand">Mazda</span><span class="pill p-brand">Honda</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Versa ×6</span><span class="pill p-series">CX-30 ×2</span><span class="pill p-series">Civic ×2</span></td>
+    <td><span class="pill p-budget">$200,000–300,000</span></td>
+    <td><span class="pill p-pay">[25-30%)</span></td>
+    <td><span class="pill p-energy">Gasolina</span></td>
+    <td><b>9</b>/8</td>
+    <td>2026-09-17 09:26<br><span class="pill" style="background:#E7F7EF;color:#0A6B38">24h 内更新</span></td>
+  </tr><tr onclick="openDrawer('dev-3ef78b10')">
+    <td><span class="mono">dev-3ef78b10</span></td>
+    <td><span class="mono" style="color:var(--ink3)">e57a91b0-2d3c-4f8a-8765-4b1c9d0e2f68</span></td>
+    <td><span class="pill p-plat">移动</span></td>
+    <td><span class="pill p-lang">Español</span></td>
+    <td><span class="more">–</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Aveo ×2</span></td>
+    <td><span class="more">–</span></td>
+    <td><span class="more">–</span></td>
+    <td><span class="more">–</span></td>
+    <td><b>2</b>/8</td>
+    <td>2026-09-14 15:47</td>
+  </tr><tr onclick="openDrawer('dev-a0b44d93')">
+    <td><span class="mono">dev-a0b44d93</span></td>
+    <td><span class="mono" style="color:var(--ink3)">90b3d6e1-4a7c-42f8-9e5d-13c8a6b0d247</span></td>
+    <td><span class="pill p-plat">PC</span></td>
+    <td><span class="pill p-lang">English</span></td>
+    <td><span class="pill p-brand">Tesla</span><span class="pill p-brand">BYD</span><span class="pill p-brand">Toyota</span></td>
+    <td style="max-width:250px"><span class="pill p-series">Model 3 ×4</span><span class="pill p-series">Seal ×3</span><span class="pill p-series">bZ4X</span></td>
+    <td><span class="pill p-budget">$500,000–700,000</span></td>
+    <td><span class="pill p-pay">[40-50%)</span></td>
+    <td><span class="pill p-energy">纯电</span></td>
+    <td><b>7</b>/8</td>
+    <td>2026-09-13 10:03</td>
+  </tr></tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- ============ 视图 2：标签字典 ============ -->
+  <section id="view-dict" style="display: block;" data-page-node-id="Qx3qvPcwsxS0S93MkBHS0f">
+    <div class="topbar" data-page-node-id="vXqXM59sjyQmG8oG4YT7Uf">
+      <div data-page-node-id="s6Y8FGqkqgjQfzB123AO4A">
+        <h1 data-page-node-id="XK7PA6ZCwFIekFq7acNnVH" style="">标签字典​</h1>
+        <div class="sub" data-page-node-id="EmNNN6dKNGNaCVieVtluvk" style="color: rgb(138, 138, 138); white-space: pre-wrap; cursor: text;">8 类记忆标签的取值口径、写入来源与触发规则 · 逐条对应 于2026-08-27日更新《Agent记忆逻辑调整》需求​​​​​</div>
+      </div>
+      <button class="btn dark" onclick="openDictUpdate()">⟳ 更新字典</button>
+    </div>
+    <div class="tbl-wrap" data-page-node-id="nB5ishDf9AxMDCEVMft70E">
+    <table data-page-node-id="bFjPSTamW5TnqNqifIEfIG">
+      <thead data-page-node-id="Z9EfRszhUvvj4olWepFdKM"><tr data-page-node-id="0Q4qKTpMlTiQZ96ZESMkrm">
+        <th style="width:110px" data-page-node-id="PrGjhO1dn1dQAENsTzxC7r">标签组</th><th style="width:230px" data-page-node-id="eoiAVFgXuV8IXWiMH06R4a">取值字典 / 口径</th><th style="width:120px" data-page-node-id="VLGfVbXrxXOifFyTFrLBvU">写入来源</th><th data-page-node-id="KGPJp1DxtImajHk7RWLbsh">写入触发规则</th><th style="width:170px" data-page-node-id="fejCqZDyLxX6kL8YrSMxwb">排序与上限</th>
+      </tr></thead>
+      <tbody data-page-node-id="TZEBEZFAH3wmGwtOoH1uBV">
+        <tr data-page-node-id="I2GaQ74SBKEoEurFNiUHMg">
+          <td data-page-node-id="ZMkSy77Q47Vq28IQ3WRic9"><b data-page-node-id="pjP4Q6uYBZCVAvL3oAfqcJ">品牌偏好</b><br data-page-node-id="TcQ7ZTcYskImJdItVWJ4fl"><span class="more" data-page-node-id="gsN0FIq42rBz2ArvX4PGex">Top3</span></td>
+          <td data-page-node-id="xOKw5m9t6SDDe9B7JApAqU">品牌主数据（车型库品牌表），如 Nissan / Toyota / VW / BYD…</td>
+          <td data-page-node-id="hu1D586gWctLIX9DK4Z9ig"><span class="pill p-src-ai" data-page-node-id="lSQFCzXzSAWMbUedZTxwo4">AI会话</span><span class="pill p-src-web" data-page-node-id="ODyp0tcs2D1nEF9vvDg7vX">浏览直录</span></td>
+          <td data-page-node-id="9uCRkFCH55vVHexDd2vRpo">① 会话语义关键词：对{品牌}感兴趣、想买/准备买/考虑买、{品牌}怎么样/靠谱吗/值得买吗、{品牌}有哪些产品、{品牌}{型号}多少钱、{品牌}最近有没有优惠、被种草、{品牌A}和{品牌B}哪个好等；② 自然日 24h 内浏览车系行为上报后端，<b data-page-node-id="YNQNcOPqVybCDfFHc5155u">查看 ≥2 次的车系</b>直录其品牌</td>
+          <td data-page-node-id="HfsMyGCUqIqFtKYwIyaqnd">时间倒序（最近表达优先）；上限 3，超出挤掉最旧</td>
+        </tr>
+        <tr data-page-node-id="z2pRc8OW7zqoVAzFVv58QH">
+          <td data-page-node-id="D98V6KLhZkgAWfKsFwoBIB"><b data-page-node-id="afcvMyYEAI46JiIgOHTYqB">车系兴趣</b><br data-page-node-id="0m9Iy0dYHRTzKsv1TPdQgH"><span class="more" data-page-node-id="mC2XQUhsqYNOPqryufvY7M">Top10</span></td>
+          <td data-page-node-id="xkqM7LPYD2wKbOi4bADsu0">车系主数据 + 频次计数；自然日（1 天内）口径</td>
+          <td data-page-node-id="kUtsguAxc327Wovt5I6ABq"><span class="pill p-src-ai" data-page-node-id="HC8YPNuJQNQf7rOLxT9JXx">AI会话</span><span class="pill p-src-web" data-page-node-id="esvAdGcIxITXrF2S112mGe">浏览≥2次</span></td>
+          <td data-page-node-id="uZwy7I9G3aHHDMRi8ACYnw">① 会话表达车系兴趣即记录；② 站内点击查看 ≥2 次直录。⚠️ 已裁决：会话条件无频次，<b data-page-node-id="JsOJVr5t6m9ocFbCZ2dEBC">整体按时间倒序</b>排序，浏览命中项附频次角标</td>
+          <td data-page-node-id="X1af1p63XfOd2rYFP9RDPB">整体时间倒序；上限 10，超出依次被替换</td>
+        </tr>
+        <tr data-page-node-id="vmI1RDl2mguFWGBYGhGWjN">
+          <td data-page-node-id="OVh78HaDTatIbJDV9n9cgM"><b data-page-node-id="dxL0YBDbpdC73cklaeWXtB">车身类型</b><br data-page-node-id="kn7VeFMn6OIFWSdqiUEHGh"><span class="more" data-page-node-id="Ba2zqWe7tluA1pTWFmQ7TA">Top3</span></td>
+          <td data-page-node-id="73w5NjL6mmRCJE0Pyf8InU">枚举：Hatchback / Sedan / SUV / Minivan / Pickup / Van / Deportivo / Coupe / Convertible</td>
+          <td data-page-node-id="8evRvFWpYzMXpvtm4t3vkM"><span class="pill p-src-ai" data-page-node-id="Z9qXhnccgXYuNtaDhi53Mv">AI会话</span><span class="pill p-src-web" data-page-node-id="NgLxGHI3DRgif7b7DgmcxX">车系反推</span></td>
+          <td data-page-node-id="lJIyEygvKErA8zNKcNDwh8">① 会话中表达车身类型偏好；② 未表达时由「车系兴趣 Top」对应的车身类型反推，去重取 3 个</td>
+          <td data-page-node-id="lCGsE5EMfxiM1ClvFgPXAM">按车系兴趣权重排序；上限 3</td>
+        </tr>
+        <tr data-page-node-id="1Q6ucMQ4pC7CqdMZh59g1e">
+          <td data-page-node-id="iuRSsljAzCASRYlW2EaliD"><b data-page-node-id="ZWazVQIUddvbqQnGiIdmNt">全款预算段</b><br data-page-node-id="vvmlTJfWzRVVIBNRLE6T0Z"><span class="more" data-page-node-id="cfwUC6dn1szBYqFPvHCpdR">单值</span></td>
+          <td data-page-node-id="hNe7GV01ctlywLsiDpYO82">精确数值段（如 $250,000–350,000）或表达「xx 左右/区间」时按 <b data-page-node-id="F6G2Bor4I2jvNgJpRrjJaS">±15%</b> 落段</td>
+          <td data-page-node-id="2rHIRXkhPiwH5HMj2zMhTP"><span class="pill p-src-ai" data-page-node-id="G5wpVupG0ObxS6VMcL6ulc">AI会话</span></td>
+          <td data-page-node-id="XvPgomSEOLafSkTetHAhNc">会话中表达新车价格/指导价/预算区间即记录；同时联动记录车系兴趣的最低/最高价作为参照区间</td>
+          <td data-page-node-id="vkjAOXcarSlCc52awT8FtA">单值，以最后更新时间为准（新表达覆盖旧值）</td>
+        </tr>
+        <tr data-page-node-id="d4BJJexHxQQ6QEndFAjaLX">
+          <td data-page-node-id="gfMlhGrmBFmeGXZ9VnFEZ4"><b data-page-node-id="I87p1Zyg0GjEIHEZIqDU30">首付占比区间</b><br data-page-node-id="7OcCAcQoOLsu3V941q18eR"><span class="more" data-page-node-id="l4qBHCidt15SXkrk5RKD8z">单值</span></td>
+          <td data-page-node-id="dnARYuU1oAPceIHsgq1ckL">枚举 8 档：[0-10%) / [10-15%) / [15-20%) / [20-25%) / [25-30%) / [30-40%) / [40-50%) / [50%+)</td>
+          <td data-page-node-id="A2PqypX3RFghNVG0Zzou0V"><span class="pill p-src-ai" data-page-node-id="cqoFkXUCaN73qxgnFiNcnK">AI会话</span></td>
+          <td data-page-node-id="n2YklFqBh6yGNCWtHExSAd">语义关键词：用于首付、付首付、首付预算、首付要付百分之几等，提取比例 X% 落入对应档位</td>
+          <td data-page-node-id="HB1qwgNKlzMUdRY3kV3EHt">单值，最新表达覆盖</td>
+        </tr>
+        <tr data-page-node-id="xtaV9uAkh9SXIqNach0teR">
+          <td data-page-node-id="8EQOH2de8NTWcEfxNklNSB"><b data-page-node-id="hwPklXPXKbCbJGOtmU9sO9">月供区间</b><br data-page-node-id="7EjRE0St4xxkd5KaRqOZN6"><span class="more" data-page-node-id="eYQWoi6NsNjSKQG0akA366">单值</span></td>
+          <td data-page-node-id="7Et0neFukXJzUwXbHL2zOz">枚举 4 档：&lt;$5,000 / $5,000–10,000 / &gt;$10,000 / 不限</td>
+          <td data-page-node-id="79CJgTbsVrRLsNPE1Ul8Oz"><span class="pill p-src-ai" data-page-node-id="nYb9CTlRieTnnTl8gsdNO4">AI会话</span><span class="pill p-src-web" data-page-node-id="BaB1gi3GqtDhMYH7yK3Unl">收入推导</span></td>
+          <td data-page-node-id="nfMLb4QpyMCuVhfoZUC7PH">① 记录用户最新表达的月供，仅保留一个区间（如先说 5,000–6,000 再说上限提到 10,000 → 更新为 $5,000–10,000）；② 「5000 左右」按 ±15% 落段；③ 表达过月收入且要购车 → 月供区间 = 月收入 15%–30% 对应段</td>
+          <td data-page-node-id="FyoM2IRZUa26AjxeCwSXcy">单值，最新表达覆盖</td>
+        </tr>
+        <tr data-page-node-id="HJclGz6zgiDWtbs7WQ8QCq">
+          <td data-page-node-id="5RGPnrCjxyUQCJmiwpyfjo"><b data-page-node-id="IhKcgGRzfFkxTk0rRPcrHM">能源类型</b><br data-page-node-id="i08cmlAOrvtOfP1XD3YUiZ"><span class="more" data-page-node-id="zDEHnQN6JV7yHWFTw43yif">Top6</span></td>
+          <td data-page-node-id="Nban2tR8HjudgbhzU9syUz">枚举：燃油 / 柴油 / 插电混动 / 油混 / 纯电 等</td>
+          <td data-page-node-id="4L3qEIV7T74kkzGLnjxUtR"><span class="pill p-src-ai" data-page-node-id="Vcm3gK1Gdkba06m3USUJaR">AI会话</span><span class="pill p-src-web" data-page-node-id="7WiG8EL6mBQ7g6kTQGSmLH">车系反推</span></td>
+          <td data-page-node-id="9FeD4O699H5SX864FzkvJJ">① 会话中表达能源偏好；② 未表达时按车系兴趣由高到低取车系的能源类型。⚠️ 已裁决：一个车系有多个能源类型时<b data-page-node-id="dKYfcCeg8WEiCEKo3uPDNX">全部记录</b>并去重</td>
+          <td data-page-node-id="j4onG7FuLIVn5cAdXgmLTB">时间倒序；上限 6，去重保存</td>
+        </tr>
+        <tr data-page-node-id="7PeDHDlzoN8JCR5nLxmbcv">
+          <td data-page-node-id="1qdmsqn8CkhZIVxtFJrtZZ"><b data-page-node-id="6IY5faglj8hiXHn9DzvjUl">语言偏好</b><br data-page-node-id="MVyqJwj0La20Pt05GiWpKx"><span class="more" data-page-node-id="8VuTqvIuaeJ4GBMIMn00aY">单值</span></td>
+          <td data-page-node-id="JHGFet6pCxGioANQq73LmN">Español / English / 中文 / XX（可扩展）</td>
+          <td data-page-node-id="gcDaODI2lfwxPC2VajvRhn"><span class="pill p-src-ai" data-page-node-id="EVHXaHfeu5Q8BFrmw7G6sv">AI会话</span><span class="pill p-src-web" data-page-node-id="czMzYKQPNe5gB8IdhhyHGu">系统设置</span></td>
+          <td data-page-node-id="8rAFUuEEucpQAnjBlrG1BN">会话维度记录；优先级：<b data-page-node-id="5mBEcawgFoa1GNdZRUWAiI">上下文中要求记忆的 &gt; 系统设置</b>（如系统默认西语、用户会话内用中文 → 记中文）</td>
+          <td data-page-node-id="N7PQMFzv0YXf7ZAs5YvFLI">单值，会话覆盖系统</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="note" style="margin-top:14px" data-page-node-id="78Oy1KYwvexi5hNogAdPUj"><b data-page-node-id="ep20FWfRmZHPDxrsM2SxuC">通用字段</b>
+      <p data-page-node-id="NIzK6HC2JFBbcgl8cR6Dnf">每个标签实例统一携带 <code data-page-node-id="u4GiqzwnHYH9Zr9JdSwqkw">{value, source, session_id, first_seen, last_seen, freq, confidence, rank}</code>；写入同时落一条 <code data-page-node-id="441Q3gslsoNmMhdtDnCyb8">tag_events</code> 明细供时间线回溯。字典本页由「标签字典」配置表驱动，新增枚举值/档位改配置不改代码。</p>
+    </div>
+  </section>
+
+  <!-- ============ 视图 3：标签分布看板 ============ -->
+  <section id="view-dash" style="display:none" data-page-node-id="DMwtYJACur2vBT5hMzDfYa">
+    <div class="topbar" data-page-node-id="7hk4j5ib6yESNjbmdRb05h">
+      <div data-page-node-id="qCDmJDpElJKCnEToVegRHZ">
+        <h1 data-page-node-id="cjZ69SNDbqawo84im6g3Tz">标签分布看板</h1>
+        <div class="sub" data-page-node-id="jX8Ts366tJFdrNLTpNKK9l">全量用户记忆标签聚合分布 · 真实版为 T-1 日快照 + 实时 Top 榜 · 当前为模拟数据</div>
+      </div>
+      <select data-page-node-id="dNM0HbxG7zsssBpSSuZHGk"><option data-page-node-id="lfz31l1eYdTCyYay7yVYOb">近 7 天</option><option data-page-node-id="0MVA54801JeoGbjFaYgZ4f">近 30 天</option><option data-page-node-id="bqB40sKnVS5lcXrSk4V7RB">全部历史</option></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" data-page-node-id="dtqvrscrRmeqdk0d51dlgF">
+      <div class="panel" data-page-node-id="BUTdD6uRM29FMevNmL8tNw"><h3 data-page-node-id="pgX8R232VCygHmUYhbmEaq">💰 全款预算段分布</h3><div class="bars" data-page-node-id="sIvTrtVMvYQ1JwF9qYxrHL">
+        <div class="bar-row" data-page-node-id="444PGyxAfJbnwyC2zw5dvU"><span class="bl" data-page-node-id="hDto4eEFg6keba52ZrrIql">&lt;$150,000</span><div class="btrack" data-page-node-id="RvbVSKUp5LpQImnpdKMUNa"><div class="bfill" style="width:24%" data-page-node-id="ppBnQtIVTume2AWA3YodtP"></div></div><span class="bv" data-page-node-id="o4b2vv7e3OKW5K9ZCN95A2">12%</span></div>
+        <div class="bar-row" data-page-node-id="f6rYQFOGS3j9fwY40A0Y57"><span class="bl" data-page-node-id="HMDEltTBhHuMzenHqQ06kn">$150,000–250,000</span><div class="btrack" data-page-node-id="j1xzzGexiKGwBbGqqiB8bI"><div class="bfill" style="width:56%" data-page-node-id="ShpAiqlhh9DysPyh3iOTI8"></div></div><span class="bv" data-page-node-id="V85T5d966sHr2fs5wrd30g">28%</span></div>
+        <div class="bar-row" data-page-node-id="sseR31DfqxjpHZE7XXuSmG"><span class="bl" data-page-node-id="kaIpJAHSHCTnGlyCDzKWqu">$250,000–350,000</span><div class="btrack" data-page-node-id="TEJxbcsZwu76MadgayX4nN"><div class="bfill" style="width:62%;background:var(--ink)" data-page-node-id="7qAwuR9NiOzpYPcj8veIUH"></div></div><span class="bv" data-page-node-id="Squd82b3o4BY7sFoDalmia">31%</span></div>
+        <div class="bar-row" data-page-node-id="tUboy6quoszkU6LHAcQ2CG"><span class="bl" data-page-node-id="jZuKpWkNDmOzRKKAePAvDT">$350,000–500,000</span><div class="btrack" data-page-node-id="mvOPXSGhf3CYmBK1mUH9ly"><div class="bfill" style="width:36%" data-page-node-id="WvStlj9ujbDOceepYfU7I6"></div></div><span class="bv" data-page-node-id="ENfDLu5OT80pmwBkoZZT08">18%</span></div>
+        <div class="bar-row" data-page-node-id="F86NK3777LiqrREODulVTO"><span class="bl" data-page-node-id="UyuAC8J7f8VtNOCbJvGSpR">$500,000+</span><div class="btrack" data-page-node-id="13eLbts24dEdvMy9kbSsqm"><div class="bfill" style="width:22%" data-page-node-id="jbqLIeKfQpXMsFx6CShZKG"></div></div><span class="bv" data-page-node-id="Q9Yy2PMbz0WFS3QbTPODBQ">11%</span></div>
+      </div></div>
+      <div class="panel" data-page-node-id="Dcd99no4i3njwwY9do9YHk"><h3 data-page-node-id="HfBrUkX1jxHDLuzao6SQYH">💳 首付占比区间分布</h3><div class="bars" data-page-node-id="pU2RE2zHSjMOqSwK2SdOup">
+        <div class="bar-row" data-page-node-id="SrY2G3DFFugIgss1qOpOCo"><span class="bl" data-page-node-id="FDZk2MdkJxmb7CDChJkuDl">[0-10%)</span><div class="btrack" data-page-node-id="EHFfHoGjoSf1QIAtosoCxm"><div class="bfill" style="width:18%" data-page-node-id="HxnDxGjcqVUDAmGNnyNA77"></div></div><span class="bv" data-page-node-id="jDbG26euMTCFfyKrgjZNvs">9%</span></div>
+        <div class="bar-row" data-page-node-id="tcuKA0r5xfJQpzqSoi86pb"><span class="bl" data-page-node-id="1l3qH1ngzXsB2fyxrDQjfc">[10-15%)</span><div class="btrack" data-page-node-id="WSx5UYvhMbaiAEH5LDlIT9"><div class="bfill" style="width:34%" data-page-node-id="Rl7CDFS0PgaYbYaLSgnWJS"></div></div><span class="bv" data-page-node-id="wn5NxHo1OtMzoRfs9naNP0">17%</span></div>
+        <div class="bar-row" data-page-node-id="UotjGHRRNApFa97Qo9MA9Y"><span class="bl" data-page-node-id="4ikim7OVSxHkJAWQZdXSPv">[15-20%)</span><div class="btrack" data-page-node-id="WeqEOSgn28gRFKY1M7sN92"><div class="bfill" style="width:44%" data-page-node-id="qvw5LLpyqTUBvrMj8imuoj"></div></div><span class="bv" data-page-node-id="AxwKgzmrnVjaVkYBHKtTap">22%</span></div>
+        <div class="bar-row" data-page-node-id="xiZ8j5DdI9nNWMH5ovDEQM"><span class="bl" data-page-node-id="w1V96Ar2Gy8uW7SeC1jmCm">[20-25%)</span><div class="btrack" data-page-node-id="iImgEJ4HZwAtTf1DNURZGU"><div class="bfill" style="width:48%;background:var(--ink)" data-page-node-id="Sm526fxPqALBfCKVVqC2Qh"></div></div><span class="bv" data-page-node-id="xFQlJpkToEYql7EDiA7U9g">24%</span></div>
+        <div class="bar-row" data-page-node-id="0eHGxyDtH88qN8zTlwsy3g"><span class="bl" data-page-node-id="zQhL7lcfJ5oXYIIcyXyczC">[25-30%)</span><div class="btrack" data-page-node-id="mx7dYen783JVz4aVQCAwVG"><div class="bfill" style="width:30%" data-page-node-id="TQS7idHRO2IHMggFBQjUWN"></div></div><span class="bv" data-page-node-id="TJkWrKhWNyGZL4nBHMHnWB">15%</span></div>
+        <div class="bar-row" data-page-node-id="KMZhORU9Q5FMVrNHkn7lU3"><span class="bl" data-page-node-id="mnPRvAwNHxg4EpfoDXwhUg">[30-40%)</span><div class="btrack" data-page-node-id="pHG68FeyPCcTRydNW5bRd3"><div class="bfill" style="width:16%" data-page-node-id="ezDG2iGABZOjYqLlHdf88O"></div></div><span class="bv" data-page-node-id="Seo6iS8Rp4EuHiMXXnSTJm">8%</span></div>
+        <div class="bar-row" data-page-node-id="GoFuGO92OE7p0kqQBQ0McQ"><span class="bl" data-page-node-id="Nm52WJqCMgIXIrHKtYuDQl">[40-50%)</span><div class="btrack" data-page-node-id="KGm8glwRvjbxAYNgw8tkUD"><div class="bfill" style="width:8%" data-page-node-id="CbyZHAbLhLM3rql8j6SRd4"></div></div><span class="bv" data-page-node-id="N7wqlMYPk9T3zeJ4NHuGRA">4%</span></div>
+        <div class="bar-row" data-page-node-id="5R2MqagdHeS2Cg76xSOTOF"><span class="bl" data-page-node-id="jxccuSgvSxrJZbi6iDNN23">[50%+)</span><div class="btrack" data-page-node-id="LeBhFIichdXcU7BgWTDTYy"><div class="bfill" style="width:2%" data-page-node-id="Ztgtg2iNZCWHq937ekNK4B"></div></div><span class="bv" data-page-node-id="oyLUlUdOuphnKRedXt5t9i">1%</span></div>
+      </div></div>
+      <div class="panel" data-page-node-id="zWESoukwfDePgP1PlMTWqB"><h3 data-page-node-id="S1LGCxCcZN72XtO2Aii3Ph">📅 月供区间分布</h3><div class="bars" data-page-node-id="2SAHZreZrypiQWBxTAQlXI">
+        <div class="bar-row" data-page-node-id="9tZT2UehDDZ1F3RmIObd4K"><span class="bl" data-page-node-id="d4N3QpuW4Ip9NbiyY7USka">&lt;$5,000</span><div class="btrack" data-page-node-id="V42GkAM4wFDnQql1DYaZAF"><div class="bfill" style="width:68%" data-page-node-id="eF58eod39dgufE6jYlYZat"></div></div><span class="bv" data-page-node-id="OlMUdu63bax4eoNHvyHtLb">34%</span></div>
+        <div class="bar-row" data-page-node-id="6X0sAqO7dPrNyV4f5QJRiT"><span class="bl" data-page-node-id="p5XSRJzDfzkqYDECTzAbm1">$5,000–10,000</span><div class="btrack" data-page-node-id="LiWW5ol4KYgUYTQ8IN2bDv"><div class="bfill" style="width:94%;background:var(--ink)" data-page-node-id="onx88yFRu7axMOllTlsR5M"></div></div><span class="bv" data-page-node-id="ApWpEB15gsSwWQJDCuzKcT">47%</span></div>
+        <div class="bar-row" data-page-node-id="eRmoqSpTGoXjdbEkmpPmlg"><span class="bl" data-page-node-id="vCb7zinjGZzuyNZCEH4uzB">&gt;$10,000</span><div class="btrack" data-page-node-id="j0mfnbVrqYyXulHsUEsdil"><div class="bfill" style="width:16%" data-page-node-id="XFUqUwn8WpQPVBkvw3oknF"></div></div><span class="bv" data-page-node-id="pz40cWLgf60LzQAow4UUzQ">8%</span></div>
+        <div class="bar-row" data-page-node-id="aUCVNUlS3kjw0S6M5FwcOY"><span class="bl" data-page-node-id="qrejDGWpdATfdkR8SEczqZ">不限</span><div class="btrack" data-page-node-id="h10FFQjWA8O1bjQG1W3YUR"><div class="bfill" style="width:22%" data-page-node-id="QtFuoSDblscgLLeRhJWkOH"></div></div><span class="bv" data-page-node-id="8JfEzKCiZQbCGCejzPej0c">11%</span></div>
+      </div></div>
+      <div class="panel" data-page-node-id="L2HKB59vJAdPpJnRc42E8w"><h3 data-page-node-id="C83qm4tz1z8jSFbdLeYdCj">⚡ 能源类型偏好 Top</h3><div class="bars" data-page-node-id="WreozorxD3xjlwiLtwbklE">
+        <div class="bar-row" data-page-node-id="Vmu6K1ubKZYVhe75l3oqEk"><span class="bl" data-page-node-id="oJeWsRTc9zWZbDP5nrfgk0">Gasolina</span><div class="btrack" data-page-node-id="Mb40xew3bwG9AJF8KeJEng"><div class="bfill" style="width:92%;background:var(--ink)" data-page-node-id="emiM0m1yjYpjG1ORUytgLi"></div></div><span class="bv" data-page-node-id="EzhguHK8eDDutEHAPsvZ5O">46%</span></div>
+        <div class="bar-row" data-page-node-id="sxCtWdVW6SucncWU9bMEXj"><span class="bl" data-page-node-id="ZQIOPFXu7a1gtUqzqIqwD1">纯电</span><div class="btrack" data-page-node-id="DS5YnJaieY4m8f0H6n9oBW"><div class="bfill" style="width:42%" data-page-node-id="atL40N4LFBQZkZmHOzCpes"></div></div><span class="bv" data-page-node-id="QuiFNFTTFX0qFll9XVwwbM">21%</span></div>
+        <div class="bar-row" data-page-node-id="sNkUBAcIMemfjmV5KI5UOi"><span class="bl" data-page-node-id="UM1Q8JjL4ry9QCEY37iu9h">油混</span><div class="btrack" data-page-node-id="0XXTtAlECmjkbzmkCohfan"><div class="bfill" style="width:28%" data-page-node-id="VeFxxDX6UCnOJX4mx12TzN"></div></div><span class="bv" data-page-node-id="Xi0aSCu1U8VI2o4X5IDSF3">14%</span></div>
+        <div class="bar-row" data-page-node-id="c7XRJrdZw2wTzkCtwa8lKb"><span class="bl" data-page-node-id="66ha5LbWYnaRk4rc9pSlRJ">Diésel</span><div class="btrack" data-page-node-id="gpEFnOrZ8FwqMVJ7BThG5K"><div class="bfill" style="width:20%" data-page-node-id="mdU6uPHvencrDWAyQibmB8"></div></div><span class="bv" data-page-node-id="29v9TnznrnnBbrL9fQSPpm">10%</span></div>
+        <div class="bar-row" data-page-node-id="Up5QUZCpjuPUl41ZukW90i"><span class="bl" data-page-node-id="aqBCtfkFjw7smefi6dgGm1">插电混动</span><div class="btrack" data-page-node-id="hdvjJ0IUCDCm4qKAa55q24"><div class="bfill" style="width:14%" data-page-node-id="m4tYOCXZksG62Zl7OwMVj9"></div></div><span class="bv" data-page-node-id="e8JEGLQ3IKsOAhiZnXZvBy">7%</span></div>
+        <div class="bar-row" data-page-node-id="PLbZybSEfca4LJDi7BFAd8"><span class="bl" data-page-node-id="AQbb3Sz2nx7I4B7cWtyS2f">柴油</span><div class="btrack" data-page-node-id="wEzawrbyg3n3OnFn4aunCl"><div class="bfill" style="width:4%" data-page-node-id="hserp64jmxbLZmWJLGoKIE"></div></div><span class="bv" data-page-node-id="F8Pwvo30bjBFzPB37FB0RW">2%</span></div>
+      </div></div>
+      <div class="panel" data-page-node-id="wiQoyaK92KncVCrKMHWWvr"><h3 data-page-node-id="aKyLAEhYwJFOVlBKbTSYDH">🚗 品牌偏好 Top10（进入画像的用户占比）</h3><div class="bars" data-page-node-id="44Qzcp3L62M8nZtfFJFdmM">
+        <div class="bar-row" data-page-node-id="0R5KkJExwBZQIN6SfUpp75"><span class="bl" data-page-node-id="OkRbDpT5jTuwJHH0LpP2jz">Nissan</span><div class="btrack" data-page-node-id="xXEnh0wit1nWrtCC62mBxx"><div class="bfill" style="width:96%;background:var(--ink)" data-page-node-id="hIhoNoCpJRwlZEHrzmEFOW"></div></div><span class="bv" data-page-node-id="qWjxz8hgvVAmuIYKj2LOfb">24%</span></div>
+        <div class="bar-row" data-page-node-id="TnOjQPoHmqgcs0TBWtBF8v"><span class="bl" data-page-node-id="yYASgD9fWMZjUuHNEGEm86">Toyota</span><div class="btrack" data-page-node-id="x7e8GsfRfMYvtLJNpDJvcU"><div class="bfill" style="width:84%" data-page-node-id="B6cAY6RBEHBaFVT13GIJWJ"></div></div><span class="bv" data-page-node-id="k6hwHPkkX5DDnYjDPf0Knk">21%</span></div>
+        <div class="bar-row" data-page-node-id="vSxejHmCwD8RHAgGBpG8yj"><span class="bl" data-page-node-id="bEBSbbQEzZe2yehMNLfrYv">VW</span><div class="btrack" data-page-node-id="TlKP3FPGIigIsSiEvufBvm"><div class="bfill" style="width:56%" data-page-node-id="IeJR78c0KEd1CR2Sfir8u1"></div></div><span class="bv" data-page-node-id="m974YxQPEh0isn6boXYYmJ">14%</span></div>
+        <div class="bar-row" data-page-node-id="NqkZWlkeVregE1ytYkDlas"><span class="bl" data-page-node-id="PrHu165sBFAGHlgDXgYlOR">Kia</span><div class="btrack" data-page-node-id="AEJESQWSwBtM7XnSJI4P0c"><div class="bfill" style="width:48%" data-page-node-id="YiGgAGjVVrEvsyPhW2BITH"></div></div><span class="bv" data-page-node-id="DZQakXSk1h00Ad3aflyCTR">12%</span></div>
+        <div class="bar-row" data-page-node-id="vOKauiXTClNUOQ1r1pxXl3"><span class="bl" data-page-node-id="pH8d5KkD0G9VrH6RLy1Ho4">Chevrolet</span><div class="btrack" data-page-node-id="G0UlT71uBQeB8iBNE2F8yl"><div class="bfill" style="width:36%" data-page-node-id="3NZqGFF3414aQryW6sUfZC"></div></div><span class="bv" data-page-node-id="YFfcLR1DzcnklbdItj1Nte">9%</span></div>
+        <div class="bar-row" data-page-node-id="RpKGXaTvjYQyT1dp3dvUod"><span class="bl" data-page-node-id="KLEvM6QEcryo8u5NIYM4s0">Ford</span><div class="btrack" data-page-node-id="dnRQ3slzbORLm6C7ssHqQX"><div class="bfill" style="width:32%" data-page-node-id="eQqgGsVysGhiwJTBtpUi8l"></div></div><span class="bv" data-page-node-id="33X0QbQWGrMzrDPhf4QpEe">8%</span></div>
+        <div class="bar-row" data-page-node-id="PH7Huae5dleyFPGkYrxGs2"><span class="bl" data-page-node-id="E1ll3t6Hj34EpuHxdJUGxu">BYD</span><div class="btrack" data-page-node-id="4woi3ZVQdXcBkUe6IVNeZB"><div class="bfill" style="width:28%" data-page-node-id="HP6VjbAUAJrUBhSEHVOsHZ"></div></div><span class="bv" data-page-node-id="73zr6Ya8X4C1erbUwN9IGv">7%</span></div>
+        <div class="bar-row" data-page-node-id="hHQGSdNt0SX59hSgbBCiok"><span class="bl" data-page-node-id="8ZexKk4vybs0JLRovUr6IO">MG</span><div class="btrack" data-page-node-id="GDBlSLN0HSbbehU5fBpu6i"><div class="bfill" style="width:24%" data-page-node-id="2oxBntBDeFzhWFtxraBabh"></div></div><span class="bv" data-page-node-id="HDX0rmDGFwn7yS6sQsD4rg">6%</span></div>
+        <div class="bar-row" data-page-node-id="i9BQISDMkIEeG0HThMmElf"><span class="bl" data-page-node-id="OZOLSwKexmR6IUP0UbFoZ5">Mazda</span><div class="btrack" data-page-node-id="y3ulxYrBSAOVx2NH88ClVI"><div class="bfill" style="width:20%" data-page-node-id="ex67IH92sxO1wfyBxYELaK"></div></div><span class="bv" data-page-node-id="f9BTnWJpusRYqPJ4dUyAsp">5%</span></div>
+        <div class="bar-row" data-page-node-id="S44JrgVHfwFEeMOy68Eeic"><span class="bl" data-page-node-id="gJzu0T81tM2uPn8jlLRkHj">Honda</span><div class="btrack" data-page-node-id="uA1fsDTD8cmBU6w4D7UPuN"><div class="bfill" style="width:16%" data-page-node-id="AySowuj1C7e7lr6uaLO5Jp"></div></div><span class="bv" data-page-node-id="nwkISgAbCa7XPtPQbtWdbg">4%</span></div>
+      </div></div>
+      <div class="panel" data-page-node-id="viN2QiOYRBLABFcUWjEI4q"><h3 data-page-node-id="asoM3mjsGOkL1OG0KSPEuL">🧩 画像完整度 · 端 · 语言</h3><div class="bars" data-page-node-id="bACJwvgZR3y82UrbDFWTEJ">
+        <div class="bar-row" data-page-node-id="56l7ydJZAuNhClH9kAa9IB"><span class="bl" data-page-node-id="0bC6DphBYrEPMdGW6zrKko">完整画像（≥5 组标签）</span><div class="btrack" data-page-node-id="hpBVNXTad9fiKDJu8rqNsF"><div class="bfill" style="width:62%" data-page-node-id="hoqHRXsFdyGPXGA4Hddk4E"></div></div><span class="bv" data-page-node-id="djmgAlCcIVf1XU2jxs9wg0">31%</span></div>
+        <div class="bar-row" data-page-node-id="SAlF7WpTIV5VcJi0hR70F4"><span class="bl" data-page-node-id="OKt1HBWOOhSXEe101G7Ggu">中等（3–4 组）</span><div class="btrack" data-page-node-id="und2LRmXBtGj30LlvpfG1I"><div class="bfill" style="width:88%;background:var(--ink)" data-page-node-id="Nxvh0GjpDWX0pSiJWlGc6U"></div></div><span class="bv" data-page-node-id="R20FAUCeC5RViI1K8Cns61">44%</span></div>
+        <div class="bar-row" data-page-node-id="ufaTO8ZzdTiSlPSNAjuFNG"><span class="bl" data-page-node-id="KhscbC3jQTNtvDpI4qshrC">浅画像（1–2 组）</span><div class="btrack" data-page-node-id="CPf1429GWDQEo75OI8PbYC"><div class="bfill" style="width:50%" data-page-node-id="xcwRXzYLKd90Br2a7rI1G0"></div></div><span class="bv" data-page-node-id="5m8ebE0p2FfvHcDwNjcABc">25%</span></div>
+        <div style="height:6px" data-page-node-id="h6mRHszUAzcgPvxjH9URnk"></div>
+        <div class="bar-row" data-page-node-id="uJDOECY2SwxyZQYYxhMggb"><span class="bl" data-page-node-id="7Rfp0Q0zeWk7aGLRAnd3Hz">移动</span><div class="btrack" data-page-node-id="fvPBoRsx6qYybHzMZcAJul"><div class="bfill" style="width:71%;background:var(--ink)" data-page-node-id="nT7GCinBynhTDbIatmyJGG"></div></div><span class="bv" data-page-node-id="G5gZVpnmck2SIWmEdohJTV">71%</span></div>
+        <div class="bar-row" data-page-node-id="TRDcUZbVznKjg2wxMGSzFy"><span class="bl" data-page-node-id="br27XEPYBXpFcGxOXIDR7w">PC</span><div class="btrack" data-page-node-id="81FjHJ80CsF8BzEA5U4QcB"><div class="bfill" style="width:29%" data-page-node-id="dUKUp4dF58Tf0qDNvC8qZu"></div></div><span class="bv" data-page-node-id="Y2tG1VuRiv1GP50QMVRHRb">29%</span></div>
+        <div style="height:6px" data-page-node-id="rEtwwFo1nblZMki0WfB66x"></div>
+        <div class="bar-row" data-page-node-id="WQ1HhyNaeTX9JlzpMvkMde"><span class="bl" data-page-node-id="Vr1n2o8KbH61kWfVhUn0Tk">Español</span><div class="btrack" data-page-node-id="4Q8m9iAIBRwj8VYpNg6B5Z"><div class="bfill" style="width:76%;background:var(--ink)" data-page-node-id="IZ37gj9AGORJPbVQOrOrgC"></div></div><span class="bv" data-page-node-id="zgzQb0im9IgavOYZyq3PTs">76%</span></div>
+        <div class="bar-row" data-page-node-id="23yizkHJt6WN0bR7IXG8Uu"><span class="bl" data-page-node-id="KQMCdYJlbQ02ZtrQZmlz1n">English</span><div class="btrack" data-page-node-id="gMBPPt8kRrQyQuTQXEs7ai"><div class="bfill" style="width:32%" data-page-node-id="yafxDJIjDpMrrku1McxNdf"></div></div><span class="bv" data-page-node-id="81eNp2nSn5mhKkeCcTTybJ">16%</span></div>
+        <div class="bar-row" data-page-node-id="b6TwbvXETHT0Bn6EtPEXGX"><span class="bl" data-page-node-id="PpROSsmo7CtAhcOM5bozoG">中文</span><div class="btrack" data-page-node-id="DRHIIisNVxSoGpznqZvRJI"><div class="bfill" style="width:16%" data-page-node-id="LA9GFoJMsgnAdOKynLwqRF"></div></div><span class="bv" data-page-node-id="L3CTlSqO674dFBIa7E9RGW">8%</span></div>
+      </div></div>
+    </div>
+    <div class="note" style="margin-top:14px" data-page-node-id="O6d5hoFNh1GRuhKjG9bhOH"><b data-page-node-id="OjfyyW8y9BGZYLDCDfnG0z">看板怎么用</b>
+      <p data-page-node-id="eNHp89sYYJyTUV1xtLivsl">① 预算段/首付/月供分布直接喂给<b data-page-node-id="8wiCjithUfYDvrEM951Xzk">金融产品定价与投放定向</b>（如 20–25% 首付占比人群最大 → 落地页方案排序）；② 品牌与车系 Top 榜反馈给<b data-page-node-id="31DT2jW2BsYcaxEbAQL0VN">内容运营选题</b>和车型库 SEO；③ 画像完整度是记忆系统的北极星之一 —— 浅画像占比高说明会话引导或浏览上报链路有漏，需要排查。</p>
+    </div>
+  </section>
+
+  </div>
+</div>
+
+<!-- ============ Drawer ============ -->
+<div class="mask" id="mask" onclick="closeDrawer()" data-page-node-id="xkEPj3US53ulfBNNh3fhPp"></div>
+<div class="drawer" id="drawer" data-page-node-id="AQ8GemuMVyBqSNu6k6qtyB"></div>
+
+<!-- ============ Export modal ============ -->
+<div class="modal" id="modal" data-page-node-id="M7KyFGxMARvVEsQV8wHfiu">
+  <div class="box" data-page-node-id="ondUyrJS53vyHnPxEozGnO">
+    <h3 data-page-node-id="rnGdSEkWYmMb6nHIVGVFs2">导出记忆标签数据</h3>
+    <p class="sub" data-page-node-id="q76uuJBNMbmNP4HYxAvLud">导出范围 = 当前筛选命中结果（<span id="modalCount" data-page-node-id="cEFzxLsBrZedmrqNDsANxd">0</span> 条）。任务将写入「导出任务记录」留痕。</p>
+    <b style="font-size:12px" data-page-node-id="3INLyzGJfXCx5vCKAhXtyK">导出字段</b>
+    <div class="field-grid" data-page-node-id="q5Tj3w5vfDJgQ0TC6dAlpd">
+      <label data-page-node-id="5WhnYtxCmhz8vFqVwC6Mwe"><input type="checkbox" checked="" data-page-node-id="DbETxp3sj36d8NFwM2C1m1"> 标识（device_id/uuid）</label>
+      <label data-page-node-id="yKgQ12HkkS6Bxl8zqummaK"><input type="checkbox" checked="" data-page-node-id="vkybDI366KlhnKYbwFwrJc"> 关联账号</label>
+      <label data-page-node-id="axGKcU2V8zXRkwR4aHfiDL"><input type="checkbox" checked="" data-page-node-id="hGVKk4fXDrLy1zSLeM7h5U"> 端 / 语言</label>
+      <label data-page-node-id="WPHfr5tC09yZuqqkuwZ2Jt"><input type="checkbox" checked="" data-page-node-id="EUp3Zf5EEhtHR1u4HB6HNP"> 品牌偏好 Top3</label>
+      <label data-page-node-id="REMg6cBhDZdT2p0JEFCzy9"><input type="checkbox" checked="" data-page-node-id="AObN5XY22LV84MQwjXmxsz"> 车系兴趣 Top10</label>
+      <label data-page-node-id="AjZzzJCGz6Oc7pBXMZES6b"><input type="checkbox" checked="" data-page-node-id="S3S8v1eZzVuT7KJFrZxYN9"> 车身类型 Top3</label>
+      <label data-page-node-id="3yj3FWwYEIfSQOXOXBYTd5"><input type="checkbox" checked="" data-page-node-id="EJYKXRgDaCQb80MyRIy2Bp"> 全款预算段</label>
+      <label data-page-node-id="lJpUqetfPhlQlDlCZ6PDk0"><input type="checkbox" checked="" data-page-node-id="SJg61rdlMdn0fj7iinL3GZ"> 首付占比区间</label>
+      <label data-page-node-id="PXpcbrlWTcOawd8auqJATk"><input type="checkbox" checked="" data-page-node-id="TM4Br2x0tlaBpfw3Pem59b"> 月供区间</label>
+      <label data-page-node-id="69sWWk88SqSxEnaDXBjhCT"><input type="checkbox" checked="" data-page-node-id="uRk5J9BYmPHxSoIqBTel2P"> 能源类型 Top6</label>
+      <label data-page-node-id="t3dl5tA2FvFHktNjdXtKFV"><input type="checkbox" checked="" data-page-node-id="JXRHGlY0GtbKw8b6M8MvcX"> 标签来源/时间/频次</label>
+      <label data-page-node-id="qxvWDFCoogLM9gun8akY8w"><input type="checkbox" data-page-node-id="CV3eDlg1bh6ZyGA1X0eQuC"> 标识明细（session_id 等）</label>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:16px;font-size:12px" data-page-node-id="b4tOHj72lW2gpe5EZA3Gbk">
+      <label data-page-node-id="8Fimo3VlXmHveY0hSJ9ibm"><input type="radio" name="fmt" checked="" data-page-node-id="IZecDneBLsjjUwGQ9oBaOc"> CSV（Excel 友好）</label>
+      <label data-page-node-id="CTvDLbn5llXPkKlmMiGuyD"><input type="radio" name="fmt" data-page-node-id="AAPdfFRn39mp8lG1YyynGX"> JSON（对接分析）</label>
+      <label data-page-node-id="3woZQbFp6QzIjAasNKEJzA"><input type="checkbox" checked="" data-page-node-id="bTOEaEosuUNkDgyGP5ywqX"> 手机号/邮箱脱敏</label>
+    </div>
+    <div class="export-actions" data-page-node-id="3eYOicYa0sAGycqxCk1DJh">
+      <button class="btn ghost" onclick="closeExport()" data-page-node-id="neZbPfoR9FWu05ywoAknL9">取消</button>
+      <button class="btn primary" onclick="doExport()" data-page-node-id="X0Q0TNYVjIugCSLJ24r51a">开始导出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Dict update modal ============ -->
+<div class="modal" id="dictModal">
+  <div class="box" style="width:640px">
+    <h3>⟳ 更新标签字典</h3>
+    <p class="sub">上传新的需求文档，AI 自动识别其中的<b>新规则与写入规则</b>，生成变更预览，确认后更新至当前标签字典。</p>
+
+    <!-- Step 1: 上传 -->
+    <div id="duStepUpload">
+      <label class="du-drop" id="duDrop">
+        <input type="file" id="duFile" accept=".md,.txt,.docx,.pdf" style="display:none">
+        <div class="du-drop-icon">📄</div>
+        <b>点击上传或拖拽需求文档到此处</b>
+        <span class="more">支持 .md / .txt / .docx / .pdf，单份 ≤ 20MB</span>
+      </label>
+      <div class="du-or"><span>或</span></div>
+      <div class="du-link-row">
+        <input type="text" id="duLink" class="du-link-input" placeholder="粘贴飞书文档链接，如 https://xxx.feishu.cn/wiki/… 或 /docx/…">
+        <button class="btn primary" onclick="readFeishuDoc()" style="white-space:nowrap">🔗 读取文档</button>
+      </div>
+      <div class="du-link-hint">支持 Wiki / Docx / 云空间链接 · 读取后走同一套 AI 规则识别流程</div>
+    </div>
+
+    <!-- Step 2: 解析中 -->
+    <div id="duStepParse" style="display:none">
+      <div class="du-steps" id="duSteps"></div>
+    </div>
+
+    <!-- Step 3: 变更预览 -->
+    <div id="duStepReview" style="display:none">
+      <div class="du-meta" id="duMeta"></div>
+      <div class="du-changes" id="duChanges"></div>
+    </div>
+
+    <div class="export-actions">
+      <button class="btn ghost" onclick="closeDictUpdate()" id="duCancelBtn">取消</button>
+      <button class="btn primary" id="duConfirmBtn" style="display:none" onclick="applyDictChanges()">确认更新字典（<span id="duConfirmCount">0</span> 条）</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Mock data（模拟记忆库）=====
+const TAG = t => `<span class="pill p-${t[0]}">${t[1]}</span>`;
+
+const users = [
+ {id:"dev-8f3a21c0",uuid:"7c9e6679-7425-40de-944b-e07fc1f90ae7",acc:"usr-20a1 · +52 55 **87 4321",login:1,plat:"移动",lang:"Español",
+  brand:["Nissan","Toyota","VW"],series:[["Nueva Electra",4],["Versa",3],["Sentra",2]],
+  body:["SUV","Sedan"],budget:"$250,000–350,000",downpay:"[20-25%)",monthly:"$5,000–10,000",energy:["Gasolina","Híbrido"],
+  tags:7,upd:"2026-09-17 16:42",fresh:1,
+  tl:[["16:42","AI会话","表达预算 30 万左右、考虑 SUV，识别品牌偏好 Nissan"],["16:20","浏览行为","Nueva Electra 详情页 ×2（自然日内累计 ×4）"],["09:15","系统","设备绑定账号 usr-20a1，画像自匿名设备迁移"]]},
+ {id:"dev-c4b90e77",uuid:"3f2b8a10-6c4d-4e91-b7a2-08d5f3e21c44",acc:"匿名（未登录）",login:0,plat:"移动",lang:"Español",
+  brand:["Kia"],series:[["Seltos",2],["Fortuner",1]],body:["SUV"],budget:"$150,000–250,000",downpay:"[10-15%)",monthly:"<$5,000",energy:["Gasolina"],
+  tags:5,upd:"2026-09-17 11:08",fresh:1,
+  tl:[["11:08","浏览行为","Seltos 详情页 ×2，写入车系兴趣"],["10:52","AI会话","询问月供 4,000 附近车型，记录月供区间 <$5,000"]]},
+ {id:"dev-11ee5a09",uuid:"a91d3e72-05b8-4c7f-8d10-9e2a4b6c8d13",acc:"usr-77f2 · 已退出登录",login:0,plat:"PC",lang:"English",
+  brand:["Ford","Chevrolet","RAM"],series:[["F-150",5],["Silverado",2],["Hilux",2]],body:["Pickup"],budget:"$400,000–600,000",downpay:"[30-40%)",monthly:"$5,000–10,000",energy:["Diésel","Gasolina"],
+  tags:8,upd:"2026-09-16 19:30",fresh:0,
+  tl:[["19:30","AI会话","对比 F-150 与 Silverado 柴油版，能源偏好记录 Diésel（由车系反推）"],["18:11","浏览行为","F-150 ×5（本周最高频车系）"],["14:02","系统","用户退出登录，此后新画像仅绑定至下次无画像新账号"]]},
+ {id:"dev-9a01bb2f",uuid:"62e4a805-19c7-4f3b-a5d6-8b90c1e2f374",acc:"usr-31c8 · +52 33 **06 2210",login:1,plat:"移动",lang:"Español",
+  brand:["BYD","MG"],series:[["Seal",3],["ZS EV",2],["Dolphin",1]],body:["Sedan","Hatchback"],budget:"$300,000–450,000",downpay:"[15-20%)",monthly:"不限",energy:["纯电","插电混动"],
+  tags:6,upd:"2026-09-16 12:44",fresh:0,
+  tl:[["12:44","AI会话","表达纯电优先、预算 40 万左右，能源偏好 纯电/插电混动"],["12:30","AI会话","月供表达「不限，全款为主」"]]},
+ {id:"dev-55d20c14",uuid:"d40b7c19-8e2f-4a6d-93e5-701fa2b8c956",acc:"匿名（未登录）",login:0,plat:"PC",lang:"中文",
+  brand:["Toyota"],series:[["Corolla",2],["Camry",1]],body:["Sedan"],budget:"–",downpay:"[0-10%)",monthly:"<$5,000",energy:["油混"],
+  tags:4,upd:"2026-09-15 20:12",fresh:0,
+  tl:[["20:12","AI会话","中文会话咨询首付最低比例，语言偏好：中文（会话内要求覆盖系统默认西语）"]]},
+ {id:"dev-72ac31e8",uuid:"18c5f2a3-6b7d-4e08-b1c4-92d6e3f8a105",acc:"usr-59b0 · +52 81 **55 0090",login:1,plat:"移动",lang:"Español",
+  brand:["Nissan","Mazda","Honda"],series:[["Versa",6],["CX-30",2],["Civic",2]],body:["Sedan","SUV","Coupé"],budget:"$200,000–300,000",downpay:"[25-30%)",monthly:"$5,000–10,000",energy:["Gasolina"],
+  tags:9,upd:"2026-09-17 09:26",fresh:1,
+  tl:[["09:26","浏览行为","Versa 详情页 ×3（自然日累计 ×6，Top1）"],["09:10","AI会话","表达 sedan 偏好 + 首付 25% 预算"]]},
+ {id:"dev-3ef78b10",uuid:"e57a91b0-2d3c-4f8a-8765-4b1c9d0e2f68",acc:"匿名（未登录）",login:0,plat:"移动",lang:"Español",
+  brand:[],series:[["Aveo",2]],body:[],budget:"–",downpay:"–",monthly:"–",energy:[],
+  tags:2,upd:"2026-09-14 15:47",fresh:0,
+  tl:[["15:47","浏览行为","Aveo ×2，仅写入车系兴趣；其余标签组为空"]]},
+ {id:"dev-a0b44d93",uuid:"90b3d6e1-4a7c-42f8-9e5d-13c8a6b0d247",acc:"usr-88e4 · 邮箱 reg***@gmail.com",login:1,plat:"PC",lang:"English",
+  brand:["Tesla","BYD","Toyota"],series:[["Model 3",4],["Seal",3],["bZ4X",1]],body:["Sedan"],budget:"$500,000–700,000",downpay:"[40-50%)",monthly:"> $10,000",energy:["纯电"],
+  tags:7,upd:"2026-09-13 10:03",fresh:0,
+  tl:[["10:03","AI会话","预算 60 万上下 ±15%，首付可到 45%，能源纯电"]]},
+];
+
+// ===== Rendering =====
+let filtered = users.slice();
+
+function rowHTML(u){
+  const series = u.series.map(s=>TAG(["series",s[0]+(s[1]>1?` ×${s[1]}`:"")])).join("");
+  const brand = u.brand.slice(0,3).map(b=>TAG(["brand",b])).join("");
+  const energy = u.energy.map(e=>TAG(["energy",e])).join("");
+  return `<tr onclick="openDrawer('${u.id}')">
+    <td><span class="mono">${u.id}</span></td>
+    <td><span class="mono" style="color:var(--ink3)">${u.uuid}</span></td>
+    <td>${TAG(["plat",u.plat])}</td>
+    <td>${TAG(["lang",u.lang])}</td>
+    <td>${brand||'<span class="more">–</span>'}</td>
+    <td style="max-width:250px">${series||'<span class="more">–</span>'}</td>
+    <td>${u.budget=="–"?'<span class="more">–</span>':TAG(["budget",u.budget])}</td>
+    <td>${u.downpay=="–"?'<span class="more">–</span>':TAG(["pay",u.downpay])}</td>
+    <td>${energy||'<span class="more">–</span>'}</td>
+    <td><b>${u.tags}</b>/8</td>
+    <td>${u.upd}${u.fresh?'<br><span class="pill" style="background:#E7F7EF;color:#0A6B38">24h 内更新</span>':""}</td>
+  </tr>`;
+}
+function render(){
+  const tb = document.getElementById("tbody");
+  if(!filtered.length){ tb.innerHTML = `<tr class="empty-row"><td colspan="11">没有命中条件的用户 —— 试试放宽标签或时间筛选</td></tr>`; }
+  else tb.innerHTML = filtered.map(rowHTML).join("");
+  document.getElementById("statFresh").textContent = filtered.filter(u=>u.fresh).length;
+  document.getElementById("statHit").textContent = filtered.length;
+  document.getElementById("statTags").textContent = (filtered.reduce((a,u)=>a+u.tags,0)/(filtered.length||1)).toFixed(1);
+  document.getElementById("statProfile").textContent = filtered.length;
+  document.getElementById("expCount").textContent = filtered.length;
+}
+// ===== 两级标签筛选：维度按钮 → 具体标签值 =====
+const DIMS = [
+  {key:"brand",   label:"品牌偏好",    vals:["Nissan","Toyota","Kia","Ford","Chevrolet","RAM","VW","Mazda","Honda","BYD","MG","Tesla"]},
+  {key:"series",  label:"车系兴趣",    vals:["Nueva Electra","Versa","Sentra","Seltos","Fortuner","F-150","Silverado","Hilux","Seal","ZS EV","Dolphin","Corolla","Camry","CX-30","Civic","Aveo","Model 3","bZ4X"]},
+  {key:"body",    label:"车身类型",    vals:["SUV","Sedan","Hatchback","Pickup","Coupé"]},
+  {key:"budget",  label:"全款预算段",  vals:["$150,000–250,000","$200,000–300,000","$250,000–350,000","$300,000–450,000","$400,000–600,000","$500,000–700,000"]},
+  {key:"downpay", label:"首付占比区间", vals:["[0-10%)","[10-15%)","[15-20%)","[20-25%)","[25-30%)","[30-40%)","[40-50%)"]},
+  {key:"monthly", label:"月供区间",    vals:["<$5,000","$5,000–10,000","> $10,000","不限"]},
+  {key:"energy",  label:"能源类型",    vals:["Gasolina","Híbrido","Diésel","纯电","插电混动","油混"]}
+];
+const dimVals = k => [...document.querySelectorAll(`.ddim[data-key="${k}"] .ddimCk:checked`)].map(c=>c.value);
+function buildDdims(){
+  document.getElementById("ddimRow").innerHTML = DIMS.map(d=>`
+    <div class="ddim" data-key="${d.key}">
+      <button type="button" class="ddim-btn" onclick="toggleDdim(event,'${d.key}')">
+        <span>${d.label}</span>
+        <span class="ddim-count" style="display:none"></span>
+        <span class="ddim-arrow">▼</span>
+      </button>
+      <div class="ddim-panel">
+        <div class="ddim-hint">勾选具体标签值（维度内多选为「或」）</div>
+        ${d.vals.map(v=>`<label class="ddim-item"><input type="checkbox" class="ddimCk" value="${v}" onchange="onDdimChange('${d.key}')"> ${v}</label>`).join("")}
+        <span class="ddim-clear" onclick="clearDim('${d.key}')">清空该维度</span>
+      </div>
+    </div>`).join("");
+}
+buildDdims();
+function toggleDdim(e,key){
+  e.stopPropagation();
+  document.querySelectorAll(".ddim.open").forEach(d=>{ if(d.dataset.key!=key) d.classList.remove("open"); });
+  document.querySelector(`.ddim[data-key="${key}"]`).classList.toggle("open");
+}
+document.addEventListener("click",e=>{ if(!e.target.closest(".ddim")) document.querySelectorAll(".ddim.open").forEach(d=>d.classList.remove("open")); });
+function updateDdimBtn(key){
+  const box = document.querySelector(`.ddim[data-key="${key}"]`);
+  const sel = dimVals(key);
+  const cnt = box.querySelector(".ddim-count");
+  cnt.style.display = sel.length?"inline-block":"none"; cnt.textContent = sel.length;
+  box.classList.toggle("has-sel", sel.length>0);
+}
+function onDdimChange(key){ updateDdimBtn(key); applyFilters(); }
+function clearDim(key){
+  document.querySelectorAll(`.ddim[data-key="${key}"] .ddimCk`).forEach(c=>c.checked=false);
+  updateDdimBtn(key); applyFilters();
+}
+function applyFilters(){
+  const q = document.getElementById("qId").value.trim().toLowerCase();
+  const lang = document.getElementById("fLang").value, plat = document.getElementById("fPlat").value, login = document.getElementById("fLogin").value;
+  const active = DIMS.map(d=>({key:d.key, vals:dimVals(d.key)})).filter(d=>d.vals.length);
+  filtered = users.filter(u=>{
+    if(q && !(u.id.toLowerCase().includes(q)||u.uuid.toLowerCase().includes(q)||u.acc.toLowerCase().includes(q))) return false;
+    if(lang && u.lang!=lang) return false;
+    if(plat && u.plat!=plat) return false;
+    if(login=="1" && !u.login) return false;
+    if(login=="0" && u.login) return false;
+    for(const {key,vals} of active){
+      let hit;
+      if(key=="budget"||key=="downpay"||key=="monthly"){ hit = u[key]!="–" && vals.includes(u[key]); }
+      else{ const uv = key=="series" ? u.series.map(s=>s[0]) : u[key]; hit = uv.some(v=>vals.includes(v)); }
+      if(!hit) return false;
+    }
+    return true;
+  });
+  render();
+}
+function resetFilters(){
+  ["qId","fLang","fPlat","fLogin","fFrom","fTo"].forEach(i=>document.getElementById(i).value="");
+  document.querySelectorAll(".ddimCk").forEach(c=>c.checked=false);
+  DIMS.forEach(d=>updateDdimBtn(d.key));
+  filtered = users.slice(); render();
+}
+document.getElementById("qId").addEventListener("input",applyFilters);
+
+// ===== 侧边栏视图切换 =====
+document.querySelectorAll(".nav a[data-view]").forEach(a=>a.addEventListener("click",e=>{
+  e.preventDefault();
+  document.querySelectorAll(".nav a").forEach(x=>x.classList.remove("on"));
+  a.classList.add("on");
+  document.querySelectorAll(".main > section").forEach(s=>s.style.display="none");
+  document.getElementById("view-"+a.dataset.view).style.display="block";
+  window.scrollTo(0,0);
+}));
+
+// ===== Drawer =====
+function openDrawer(id){
+  const u = users.find(x=>x.id==id);
+  document.getElementById("drawer").innerHTML = `
+    <h2><span>记忆画像详情 <span class="mono" style="font-size:12px;color:var(--ink3)">${u.id}</span></span><span class="closex" onclick="closeDrawer()">✕</span></h2>
+    <div class="sec">
+      <div class="sec-t">身份与环境</div>
+      <div class="tagcard">
+        <div class="kv"><b>设备：</b><span class="mono">${u.id}</span></div>
+        <div class="kv"><b>UUID：</b><span class="mono">${u.uuid}</span></div>
+        <div class="kv"><b>账号：</b><span class="mono">${u.acc}</span></div>
+        <div class="kv"><b>端 / 语言：</b>${TAG(["plat",u.plat])} ${TAG(["lang",u.lang])} <span class="more" style="margin-left:6px">语言=会话内要求 &gt; 系统设置（当前：会话覆盖）</span></div>
+        <div class="kv"><b>最近会话用户消息：</b>${u.upd}</div>
+      </div>
+      <div class="bindbox">⚙️ <b>绑定规则生效中：</b>${u.login?"已登录 —— 本设备产生的兴趣偏好实时更新到当前账号。":"匿名画像挂设备；下次登录新账号且该账号无画像时，此画像将整体迁移绑定。"}</div>
+    </div>
+    <div class="sec"><div class="sec-t">购车偏好 · 全量标签</div>
+      <div class="tagcard"><div class="tc-h"><b>品牌偏好 Top3</b><span>时间倒序</span></div>${u.brand.map(b=>TAG(["brand",b])).join("")||'<span class="more">暂无</span>'}</div>
+      <div class="tagcard"><div class="tc-h"><b>车系兴趣 Top10</b><span>整体时间倒序 · 浏览命中附频次（≥2 次直录）</span></div>
+        ${u.series.map(s=>`<div class="kv"><b>${s[0]}</b><span class="more">频次 ×${s[1]} · 最近 ${u.upd.slice(0,5)} · ${s[1]>=2?"浏览直录":"AI会话"}</span></div>`).join("")||'<span class="more">暂无</span>'}</div>
+      <div class="tagcard"><div class="tc-h"><b>车身类型 Top3</b><span>由车系兴趣反推</span></div>${u.body.map(b=>TAG(["body",b])).join("")||'<span class="more">暂无</span>'}</div>
+      <div class="tagcard"><div class="tc-h"><b>全款预算段</b><span>±15% 落段 · 以最后更新时间为准</span></div>${u.budget=="–"?'<span class="more">暂无</span>':TAG(["budget",u.budget])}</div>
+      <div class="tagcard"><div class="tc-h"><b>首付占比区间</b><span>枚举区间字典</span></div>${u.downpay=="–"?'<span class="more">暂无</span>':TAG(["pay",u.downpay])}</div>
+      <div class="tagcard"><div class="tc-h"><b>月供区间</b><span>单值区间 · 最新表达覆盖旧值</span></div>${u.monthly=="–"?'<span class="more">暂无</span>':TAG(["pay",u.monthly])}</div>
+      <div class="tagcard"><div class="tc-h"><b>能源类型 Top6</b><span>时间倒序 · 车系多能源全部记录并去重</span></div>${u.energy.map(e=>TAG(["energy",e])).join("")||'<span class="more">暂无</span>'}</div>
+    </div>
+    <div class="sec"><div class="sec-t">写入时间线（来源可回溯）</div>
+      <div class="timeline">${u.tl.map(t=>`<div class="tl-item"><div class="t">${t[0]} · ${t[1]}</div><div class="m">${t[2]}</div></div>`).join("")}</div>
+    </div>
+    <div class="sec"><button class="btn ghost" onclick="alert('原型演示：此处调起人工纠错面板，可手动修正/删除单个标签并留痕。')">✎ 人工修正标签（留痕）</button>
+    <button class="btn dark" style="margin-left:8px" onclick="openExport()">⬇ 导出该用户</button></div>`;
+  document.getElementById("drawer").classList.add("on");
+  document.getElementById("mask").classList.add("on");
+}
+function closeDrawer(){document.getElementById("drawer").classList.remove("on");document.getElementById("mask").classList.remove("on");}
+
+// ===== Export =====
+function openExport(){document.getElementById("modalCount").textContent=filtered.length;document.getElementById("modal").classList.add("on");}
+function closeExport(){document.getElementById("modal").classList.remove("on");}
+function doExport(){
+  closeExport();
+  const blob = new Blob(["\ufeffdevice_id,uuid,account,platform,lang,brand_top3,series_top10,budget,downpay,energy,tag_count,updated\n"
+    + filtered.map(u=>[u.id,u.uuid,`"${u.acc}"`,u.plat,u.lang,`"${u.brand.join("|")}"`,`"${u.series.map(s=>s[0]+"x"+s[1]).join("|")}"`,`"${u.budget}"`,`"${u.downpay}"`,`"${u.energy.join("|")}"`,u.tags,`"${u.upd}"`].join(",")).join("\n")],
+    {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `cavi_memory_tags_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+render();
+
+// ===== 更新字典：上传需求文档 → AI 识别规则 → 变更预览 → 应用 =====
+const DICT_GROUPS = ["品牌偏好","车系兴趣","车身类型","全款预算段","首付占比区间","月供区间","能源类型","语言偏好"];
+let duChanges = [];
+function openDictUpdate(){
+  document.getElementById("dictModal").classList.add("on");
+  document.getElementById("duStepUpload").style.display = "";
+  document.getElementById("duStepParse").style.display = "none";
+  document.getElementById("duStepReview").style.display = "none";
+  document.getElementById("duConfirmBtn").style.display = "none";
+  document.getElementById("duCancelBtn").textContent = "取消";
+  document.getElementById("duFile").value = "";
+  document.getElementById("duLink").value = "";
+}
+function closeDictUpdate(){ document.getElementById("dictModal").classList.remove("on"); }
+function toast(msg){
+  const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("on");
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.classList.remove("on"), 3200);
+}
+// 上传区交互
+const drop = document.getElementById("duDrop"), fileInput = document.getElementById("duFile");
+drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("over");});
+drop.addEventListener("dragleave",()=>drop.classList.remove("over"));
+drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("over");if(e.dataTransfer.files.length) handleDictFile(e.dataTransfer.files[0]);});
+fileInput.addEventListener("change",()=>{ if(fileInput.files.length) handleDictFile(fileInput.files[0]); });
+
+function handleDictFile(file){
+  runParseFlow(file.name, ()=>{
+    // 真实读取文本（md/txt），docx/pdf 原型阶段用演示抽取
+    if(/\.(md|txt)$/i.test(file.name)){
+      const r = new FileReader();
+      r.onload = e => showDictReview(file.name, extractRules(e.target.result));
+      r.onerror = () => showDictReview(file.name, demoRules());
+      r.readAsText(file);
+    } else {
+      showDictReview(file.name, demoRules());
+    }
+  });
+}
+// 飞书文档链接读取（原型：校验链接格式 → 演示抽取；真实版由后端调飞书 OpenAPI 拉取正文后走同一 LLM 抽取）
+function readFeishuDoc(){
+  const input = document.getElementById("duLink");
+  const url = input.value.trim();
+  const m = url.match(/^https:\/\/[a-zA-Z0-9-]+\.feishu\.cn\/(wiki|docx|drive|sheets)\/([a-zA-Z0-9]+)/);
+  if(!m){
+    input.classList.remove("err"); void input.offsetWidth; input.classList.add("err");
+    toast("⚠️ 请粘贴有效的飞书文档链接（feishu.cn/wiki 或 /docx/…）");
+    return;
+  }
+  input.classList.remove("err");
+  const docToken = m[2];
+  runParseFlow(`飞书文档 · ${m[1]}/${docToken.slice(0,8)}…`, ()=>{
+    // 原型阶段使用演示抽取；真实版：后端 GET /admin/memory/dict/parse {doc_url} → OpenAPI 拉正文 → LLM 抽取规则
+    showDictReview(`飞书文档 ${docToken.slice(0,12)}…`, demoRules());
+  });
+}
+function runParseFlow(sourceName, rulesProvider){
+  const steps = ["读取文档内容","抽取规则与写入规则语句","与当前 8 类标签字典比对","生成变更预览"];
+  document.getElementById("duStepUpload").style.display = "none";
+  const parseBox = document.getElementById("duStepParse");
+  parseBox.style.display = "";
+  document.getElementById("duCancelBtn").textContent = "关闭";
+  let i = 0;
+  const stepsEl = document.getElementById("duSteps");
+  const tick = ()=>{
+    stepsEl.innerHTML = steps.map((s,idx)=>`<div class="du-step ${idx<i?'done':idx===i?'doing':''}"><span class="dot"></span>${s}${idx===i&&i<steps.length?' …':''}</div>`).join("");
+    if(i < steps.length){ i++; setTimeout(tick, 550); }
+    else{ rulesProvider(); }
+  };
+  tick();
+}
+// 从文档文本抽取规则语句（原型级规则匹配，真实版由 LLM 抽取）
+function extractRules(text){
+  const KEY = /(规则|触发|写入|来源|频次|区间|Top|去重|倒序|优先级|上限|落段|覆盖|记录|归一|枚举|档)/;
+  const GROUPS = [
+    ["品牌偏好",/品牌/],["车系兴趣",/车系|车型兴趣/],["车身类型",/车身|Hatchback|Sedan|SUV|Pickup|皮卡/],
+    ["全款预算段",/预算|全款/],["首付占比区间",/首付/],["月供区间",/月供/],
+    ["能源类型",/能源|燃油|柴油|混动|纯电|电动/],["语言偏好",/语言/]
+  ];
+  const items = [];
+  text.split(/\n+/).map(l=>l.trim().replace(/^[-*·\d.、\s]+/,"")).filter(l=>l.length>8 && l.length<160 && KEY.test(l)).forEach(line=>{
+    const hit = GROUPS.find(([,re])=>re.test(line));
+    if(hit) items.push({group:hit[0], text:line});
+  });
+  const seen = new Set();
+  const uniq = items.filter(it=>{const k=it.group+it.text.slice(0,30); if(seen.has(k))return false; seen.add(k); return true;});
+  return uniq.length ? uniq.slice(0,10) : demoRules();
+}
+function demoRules(){
+  return [
+    {group:"品牌偏好", text:"新增品牌语义关键词：{品牌}保值吗、{品牌}二手价多少、{品牌}和{品牌A}哪个性价比高"},
+    {group:"车系兴趣", text:"浏览频次口径由「自然日 ≥2 次」调整为「72 小时内 ≥2 次」，频次角标同步按 72h 累计"},
+    {group:"全款预算段", text:"预算表达含「含保险/上牌费用」时，先剔除附加费再按 ±15% 落段"},
+    {group:"月供区间", text:"新增写入来源：金融预审批回填（预审批通过额度反推可承受月供段），source 标记「预审批」"},
+    {group:"能源类型", text:"新增枚举值：Gas Natural（CNG），与现有 6 类并列，上限仍为 Top6"}
+  ];
+}
+function showDictReview(fileName, rules){
+  document.getElementById("duStepParse").style.display = "none";
+  const review = document.getElementById("duStepReview");
+  review.style.display = "";
+  const today = new Date().toISOString().slice(0,10);
+  duChanges = rules.map((r,idx)=>({
+    id:idx,
+    group:r.group,
+    type: DICT_GROUPS.includes(r.group) ? "mod" : "add",
+    text:r.text,
+    applied:false
+  }));
+  document.getElementById("duMeta").innerHTML = `📄 <b>${fileName}</b> 识别到 <b>${duChanges.length}</b> 条规则变更 · 生成时间 ${today} · 确认后写入字典配置表并留痕`;
+  document.getElementById("duChanges").innerHTML = duChanges.map(c=>`
+    <label class="du-change">
+      <div class="du-change-h">
+        <input type="checkbox" checked onchange="toggleDuChange(${c.id},this.checked)">
+        <span class="du-badge ${c.type==='mod'?'mod':'newgrp'}">${c.type==='mod'?'修改规则':'新增标签组'}</span>
+        <b>${c.group}</b>
+        <span class="du-change-target">→ 写入「写入触发规则 / 取值口径」列</span>
+      </div>
+      <div class="du-change-body"><mark>${c.text}</mark></div>
+    </label>`).join("");
+  updateDuConfirm();
+}
+function toggleDuChange(id,on){ duChanges[id].applied = on; updateDuConfirm(); }
+function updateDuConfirm(){
+  const n = duChanges.filter(c=>c.applied).length;
+  document.getElementById("duConfirmCount").textContent = n;
+  document.getElementById("duConfirmBtn").style.display = n ? "" : "none";
+}
+function applyDictChanges(){
+  const applied = duChanges.filter(c=>c.applied);
+  const tbody = document.querySelector("#view-dict tbody");
+  const today = new Date().toISOString().slice(0,10);
+  let updatedRows = 0;
+  applied.forEach(c=>{
+    let row = [...tbody.querySelectorAll("tr")].find(tr=>tr.querySelector("td b") && tr.querySelector("td b").textContent.trim()===c.group);
+    if(!row){
+      row = document.createElement("tr");
+      row.innerHTML = `<td><b>${c.group}</b><br><span class="more">新增组</span></td><td>由需求文档识别生成，待补全取值字典</td><td><span class="pill p-src-ai">AI会话</span></td><td></td><td>待定义</td>`;
+      tbody.appendChild(row);
+    }
+    const ruleCell = row.querySelectorAll("td")[3];
+    ruleCell.insertAdjacentHTML("beforeend",
+      `<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)"><span class="du-badge ${c.type==='mod'?'mod':'newgrp'}">${today} 文档更新</span> <mark>${c.text}</mark></div>`);
+    row.classList.remove("row-updated"); void row.offsetWidth; row.classList.add("row-updated");
+    updatedRows++;
+  });
+  closeDictUpdate();
+  toast(`✅ 已更新 ${updatedRows} 处字典规则（${today}），变更已留痕`);
+}
+</script>
+
+
+
+</body></html>
