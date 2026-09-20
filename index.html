@@ -694,7 +694,6 @@
 
     <div class="export-actions">
       <button class="btn ghost" onclick="closeDictUpdate()" id="duCancelBtn">取消</button>
-      <button class="btn primary" id="duConfirmBtn" style="display:none" onclick="applyDictChanges()">确认提交（<span id="duConfirmCount">0</span> 条）</button>
     </div>
   </div>
 </div>
@@ -921,7 +920,6 @@ function openDictUpdate(){
   document.getElementById("duStepUpload").style.display = "";
   document.getElementById("duStepParse").style.display = "none";
   document.getElementById("duStepReview").style.display = "none";
-  document.getElementById("duConfirmBtn").style.display = "none";
   document.getElementById("duCancelBtn").textContent = "取消";
   document.getElementById("duFile").value = "";
   document.getElementById("duLink").value = "";
@@ -1032,16 +1030,29 @@ function showDictReview(fileName, rules){
       </div>
       <div class="du-change-body"><mark>${c.text}</mark></div>
     </label>`).join("");
+  // 确认提交按钮：由 JS 动态渲染在预览步骤内，点击后才会更新标签字典列表
+  const oldActions = document.getElementById("duReviewActions");
+  if(oldActions) oldActions.remove();
+  document.getElementById("duStepReview").insertAdjacentHTML("beforeend",
+    `<div class="export-actions" id="duReviewActions">
+       <button class="btn ghost" onclick="closeDictUpdate()">关闭</button>
+       <button class="btn primary" id="duConfirmBtn" onclick="applyDictChanges()">确认提交（<span id="duConfirmCount">0</span> 条）</button>
+     </div>`);
   updateDuConfirm();
 }
 function toggleDuChange(id,on){ duChanges[id].applied = on; updateDuConfirm(); }
 function updateDuConfirm(){
+  const btn = document.getElementById("duConfirmBtn");
+  if(!btn) return;
   const n = duChanges.filter(c=>c.applied).length;
   document.getElementById("duConfirmCount").textContent = n;
-  document.getElementById("duConfirmBtn").style.display = n ? "" : "none";
+  btn.disabled = !n;
+  btn.style.opacity = n ? "" : ".45";
+  btn.style.cursor = n ? "" : "not-allowed";
 }
 function applyDictChanges(){
   const applied = duChanges.filter(c=>c.applied);
+  if(!applied.length){ toast("⚠️ 请至少勾选 1 条规则变更再提交"); return; }
   const tbody = document.querySelector("#view-dict tbody");
   const today = new Date().toISOString().slice(0,10);
   let updatedRows = 0;
