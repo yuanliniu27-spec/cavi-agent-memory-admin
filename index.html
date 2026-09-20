@@ -692,7 +692,7 @@
       <div class="du-changes" id="duChanges"></div>
     </div>
 
-    <div class="export-actions">
+    <div class="export-actions" id="duStaticActions">
       <button class="btn ghost" onclick="closeDictUpdate()" id="duCancelBtn">取消</button>
     </div>
   </div>
@@ -921,6 +921,7 @@ function openDictUpdate(){
   document.getElementById("duStepParse").style.display = "none";
   document.getElementById("duStepReview").style.display = "none";
   document.getElementById("duCancelBtn").textContent = "取消";
+  document.getElementById("duStaticActions").style.display = "";
   document.getElementById("duFile").value = "";
   document.getElementById("duLink").value = "";
 }
@@ -972,6 +973,7 @@ function runParseFlow(sourceName, rulesProvider){
   const parseBox = document.getElementById("duStepParse");
   parseBox.style.display = "";
   document.getElementById("duCancelBtn").textContent = "关闭";
+  document.getElementById("duStaticActions").style.display = "";
   let i = 0;
   const stepsEl = document.getElementById("duSteps");
   const tick = ()=>{
@@ -1017,7 +1019,7 @@ function showDictReview(fileName, rules){
     group:r.group,
     type: DICT_GROUPS.includes(r.group) ? "mod" : "add",
     text:r.text,
-    applied:false
+    applied:true   // 与勾选框默认勾选一致
   }));
   document.getElementById("duMeta").innerHTML = `📄 <b>${fileName}</b> 识别到 <b>${duChanges.length}</b> 条规则变更 · 生成时间 ${today} · 确认后写入字典配置表并留痕`;
   document.getElementById("duChanges").innerHTML = duChanges.map(c=>`
@@ -1031,6 +1033,8 @@ function showDictReview(fileName, rules){
       <div class="du-change-body"><mark>${c.text}</mark></div>
     </label>`).join("");
   // 确认提交按钮：由 JS 动态渲染在预览步骤内，点击后才会更新标签字典列表
+  // 预览态隐藏静态底栏，避免出现两个「关闭」
+  document.getElementById("duStaticActions").style.display = "none";
   const oldActions = document.getElementById("duReviewActions");
   if(oldActions) oldActions.remove();
   document.getElementById("duStepReview").insertAdjacentHTML("beforeend",
