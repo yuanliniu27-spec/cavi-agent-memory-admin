@@ -883,8 +883,7 @@ function openDrawer(id){
     <div class="sec"><div class="sec-t">写入时间线（来源可回溯）</div>
       <div class="timeline">${u.tl.map(t=>`<div class="tl-item"><div class="t">${t[0]} · ${t[1]}</div><div class="m">${t[2]}</div></div>`).join("")}</div>
     </div>
-    <div class="sec"><button class="btn ghost" onclick="alert('原型演示：此处调起人工纠错面板，可手动修正/删除单个标签并留痕。')">✎ 人工修正标签（留痕）</button>
-    <button class="btn dark" style="margin-left:8px" onclick="openExport()">⬇ 导出该用户</button></div>`;
+    <div class="sec"><button class="btn ghost" onclick="closeDrawer()">← 返回</button></div>`;
   document.getElementById("drawer").classList.add("on");
   document.getElementById("mask").classList.add("on");
 }
