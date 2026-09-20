@@ -129,7 +129,7 @@
   /* ===== Export modal ===== */
   .modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);z-index:80;opacity:0;pointer-events:none;transition:.2s}
   .modal.on{opacity:1;pointer-events:auto}
-  .modal .box{background:#fff;border-radius:16px;width:520px;max-width:92vw;padding:22px 24px;transform:translateY(8px);transition:.2s}
+  .modal .box{background:#fff;border-radius:16px;width:640px;max-width:92vw;max-height:88vh;overflow:auto;padding:22px 24px;transform:translateY(8px);transition:.2s}
   .modal.on .box{transform:none}
   .modal h3{font-size:15px;margin-bottom:6px}
   .modal p.sub{color:var(--ink3);font-size:12px;margin-bottom:14px}
@@ -174,7 +174,8 @@
   @keyframes flashRow{0%{background:#FFF3B0}100%{background:transparent}}
   .field-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0 14px}
   .field-grid label{display:flex;gap:6px;align-items:center;font-size:11.5px;background:#FAFAF8;border:1px solid var(--line);border-radius:9px;padding:7px 9px;cursor:pointer}
-  .export-actions{display:flex;justify-content:flex-end;gap:10px}
+  .export-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .export-actions .btn{white-space:nowrap}
 
   /* ===== Bars (dashboard) ===== */
   .bars{display:flex;flex-direction:column;gap:8px}
@@ -693,7 +694,7 @@
 
     <div class="export-actions">
       <button class="btn ghost" onclick="closeDictUpdate()" id="duCancelBtn">取消</button>
-      <button class="btn primary" id="duConfirmBtn" style="display:none" onclick="applyDictChanges()">确认更新字典（<span id="duConfirmCount">0</span> 条）</button>
+      <button class="btn primary" id="duConfirmBtn" style="display:none" onclick="applyDictChanges()">确认提交（<span id="duConfirmCount">0</span> 条）</button>
     </div>
   </div>
 </div>
